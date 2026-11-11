@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en-NZ" data-density="compact">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mainstreet Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Odor+Mean+Chey&family=Material+Icons&display=swap" rel="stylesheet">
+<!-- ONE DS icon set is Font Awesome Pro Sharp (paid kit). FA Free 6 is used as a stand-in for non-Figma UI. -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="one-ds-tokens.css?v=15">
+<link rel="stylesheet" href="app.css?v=15">
+</head>
+<body>
+
+<!-- ============================ APP BAR (Figma: Group 15529) ============================ -->
+<header class="appbar">
+  <a class="brand" href="#/dispatch" aria-label="Mainstreet home">
+    <svg class="brand-mark" viewBox="28 12 42 42" aria-hidden="true">
+      <circle cx="48.5" cy="32" r="19.0761" fill="#fff" stroke-width="0.85" stroke="#C3262D"/>
+      <path d="M34 19.4115C41.0674 30.363 43.403 38.012 45.0931 50.7616C59.08 53.1731 68.5221 39.4206 66.797 34.8454C56.089 25.9919 49.0346 21.7609 36.4115 17C34.9609 17.5377 34.4439 18.074 34 19.4115Z" fill="#C3262D"/>
+      <path d="M35.6523 18.1562C36.1251 18.5801 36.5694 18.9855 37.037 19.4131C45.4772 26.8634 52.0618 35.6753 56.642 45.6858C56.9133 46.2461 57.1668 46.7828 57.4335 47.348C57.7657 48.0547 58.3572 48.5766 59.1091 48.7808C59.8592 48.9862 60.7081 48.8572 61.438 48.4401C62.1679 48.0231 62.71 47.3571 62.9139 46.6067C63.1196 45.8552 62.9703 45.0806 62.5301 44.4357C62.1691 43.9025 61.8212 43.3983 61.4547 42.8688C55.1579 33.3533 46.648 25.1308 37.2178 19.1819C36.6891 18.8307 36.1846 18.5025 35.6523 18.1562Z" fill="#fff"/>
+    </svg>
+    <span class="brand-name" aria-label="Mainstreet NZ">Ma<span class="dot-i">i</span>nstreet<small>NZ</small></span>
+  </a>
+  <nav class="nav" aria-label="Main">
+    <div class="nav-item"><button class="nav-btn" data-menu="nav-new" aria-haspopup="menu" aria-expanded="false">New <span class="mi">expand_more</span></button></div>
+    <div class="nav-item"><button class="nav-btn" data-menu="nav-enquiry" aria-haspopup="menu" aria-expanded="false">Enquiry <span class="mi">expand_more</span></button></div>
+    <div class="nav-item"><button class="nav-btn" data-menu="nav-todo" aria-haspopup="menu" aria-expanded="false">To Do <span class="mi">expand_more</span></button></div>
+    <div class="nav-item"><button class="nav-btn" data-menu="nav-update" aria-haspopup="menu" aria-expanded="false">Update <span class="mi">expand_more</span></button></div>
+    <div class="nav-item"><button class="nav-btn" data-menu="nav-reports" aria-haspopup="menu" aria-expanded="false">Reports <span class="mi">expand_more</span></button></div>
+    <div class="nav-item"><button class="nav-btn" data-menu="nav-pulse" aria-haspopup="menu" aria-expanded="false">Pulse <span class="mi">expand_more</span></button></div>
+    <div class="nav-item"><button class="nav-btn" data-menu="nav-maintain" aria-haspopup="menu" aria-expanded="false">Maintain <span class="mi">expand_more</span></button></div>
+    <div class="nav-item"><button class="nav-btn" data-menu="nav-account" aria-haspopup="menu" aria-expanded="false">On Account <span class="mi">expand_more</span></button></div>
+    <div class="nav-item"><button class="nav-btn" data-menu="nav-claims" aria-haspopup="menu" aria-expanded="false">Claims <span class="mi">expand_more</span></button></div>
+  </nav>
+  <div class="appbar-tools">
+    <button class="icon-btn" data-tip="Watched consignments" data-notbuilt="Watched consignments"><span class="i i-md mi">visibility</span><span class="badge">4</span></button>
+    <button class="icon-btn" data-tip="Pivot reports" data-notbuilt="Pivot reports"><span class="i i-md mi">pivot_table_chart</span><span class="badge">2</span></button>
+    <form class="global-search" role="search" id="global-search">
+      <span class="i mi">search</span>
+      <input type="search" placeholder="Mainstreet global search" aria-label="Mainstreet global search" id="global-search-input">
+      <span class="i mi">expand_more</span>
+    </form>
+    <button class="icon-btn" data-tip="Help" data-notbuilt="Help centre"><span class="i i-md mi">live_help</span></button>
+    <button class="icon-btn" data-tip="Profile" data-menu="profile"><span class="i i-md mi">person_outline</span></button>
+  </div>
+</header>
+<div class="progress" id="progress" hidden></div>
+
+<!-- ============================ CONSIGNMENT EDIT (Figma 4766:161438) ============================ -->
+<main class="page screen figma-screen" id="screen-consignment" hidden>
+  <div class="page-head"><h1 class="page-title">Consignment Edit</h1></div>
+  <div id="save-alert-slot"></div>
+
+  <!-- Journey tracker -->
+  <div class="legs" role="list" aria-label="Linehaul journey">
+    <button class="leg complete" role="listitem" data-notbuilt="Linehaul leg MAN01 – LDS02">
+      <div class="leg-top">Linehaul - MAN01 - LDS02 <span class="leg-chip complete"><span class="mi">check_circle</span>Complete</span></div>
+      <div class="leg-line">Outturned: 09 Nov 06:45 (A)</div><div class="leg-line">ETA: 09 Nov 06:30 (A)</div><div class="leg-line">Carrier: 50812 - Pennine Freight</div>
+    </button>
+    <button class="leg progress-leg" role="listitem" data-notbuilt="Linehaul leg LDS02 – NCL01">
+      <div class="leg-top">Linehaul - LDS02 - NCL01 <span class="leg-chip inprogress"><span class="mi">timelapse</span>In progress</span></div>
+      <div class="leg-line">Outturned: Awaiting arrival</div><div class="leg-line">ETA: 09 Nov 10:15 (E)</div><div class="leg-line">Carrier: 62304 - Northern Haul</div>
+    </button>
+    <button class="leg" role="listitem" data-notbuilt="Linehaul leg NCL01 – EDB03">
+      <div class="leg-top">Linehaul - NCL01 - EDB03 <span class="leg-chip upcoming"><span class="mi">schedule</span>Upcoming</span></div>
+      <div class="leg-line">Outturned: Not yet dispatched</div><div class="leg-line">ETA: 09 Nov 14:30 (E)</div><div class="leg-line">Carrier: 71056 - Border Logistics</div>
+    </button>
+    <button class="leg" role="listitem" data-notbuilt="Linehaul leg EDB03 – DND01">
+      <div class="leg-top">Linehaul - EDB03 - DND01 <span class="leg-chip upcoming"><span class="mi">schedule</span>Upcoming</span></div>
+      <div class="leg-line">Outturned: Not yet dispatched</div><div class="leg-line">ETA: 09 Nov 18:00 (E)</div><div class="leg-line">Carrier: 84219 - Tay Transport</div>
+    </button>
+    <button class="leg" role="listitem" data-notbuilt="Linehaul leg DND01 – ABZ02">
+      <div class="leg-top">Linehaul - DND01 - ABZ02 <span class="leg-chip upcoming"><span class="mi">schedule</span>Upcoming</span></div>
+      <div class="leg-line">Outturned: Not yet dispatched</div><div class="leg-line">ETA: 09 Nov 21:15 (E)</div><div class="leg-line">Carrier: 93670 - Granite Freight</div>
+    </button>
+  </div>
+
+  <div class="stack">
+    <!-- Header fields -->
+    <section class="card card-pad" aria-label="Consignment details">
+      <div class="hdr-grid">
+        <div class="field select disabled filled"><select class="ctl" id="f-consignment" disabled><option>FWM62085911</option></select><label for="f-consignment">Consignment</label></div>
+        <div class="field auto has-start required filled" data-lookup="customers" data-on-pick="customer">
+          <span class="adorn-start"><span class="i mi">search</span></span>
+          <input class="ctl" id="f-customer" value="MCRMIMME" autocomplete="off" role="combobox" aria-expanded="false">
+          <label for="f-customer">Customer<span class="req-star">*</span></label>
+          <span class="adorn-end"><button type="button" class="icon-btn sm clear-btn" data-tip="Clear" aria-label="Clear"><span class="i i-xs mi">close</span></button><span class="i mi caret">arrow_drop_down</span></span>
+        </div>
+        <div class="cust-block">
+          <span class="i i-md mi">attach_money</span>
+          <div><div class="name" id="cust-name">Oceana Gold - Mobile Maintance Equipment (MFT)</div><div class="addr" id="cust-addr">Open Pit Workshop, Macraes Flat, South Island, New Zealand</div></div>
+        </div>
+        <div class="field select required filled"><select class="ctl" id="f-transport"><option>Road</option><option>Rail</option><option>Sea</option><option>Air</option></select><label for="f-transport">Transport mode<span class="req-star">*</span></label></div>
+        <div class="field select disabled filled"><select class="ctl" id="f-control" disabled><option>03NZ - MAINFREIGHT DUNEDIN</option></select><label for="f-control">Control branch</label></div>
+        <div></div>
+        <div class="field select required filled"><select class="ctl" id="f-service"><option>LCL - Less than Container Load</option><option>FCL - Full Container Load</option><option>EXP - Express</option><option>OVN - Overnight</option></select><label for="f-service">Service level<span class="req-star">*</span></label></div>
+        <div class="field select required filled"><select class="ctl" id="f-routing"><option>LCL</option><option>Direct</option><option>Cross-dock</option></select><label for="f-routing">Routing type<span class="req-star">*</span></label></div>
+        <div class="field select required filled"><select class="ctl" id="f-terms"><option>D2D - Door to Door</option><option>D2W - Door to Warehouse</option><option>W2D - Warehouse to Door</option><option>W2W - Warehouse to Warehouse</option></select><label for="f-terms">Freight terms<span class="req-star">*</span></label></div>
+        <div class="field select required filled"><select class="ctl" id="f-dim"><option>333.333</option><option>250</option><option>200</option><option>167</option></select><label for="f-dim">DIM factor<span class="req-star">*</span></label></div>
+        <div class="hdr-icons">
+          <button class="icon-btn" data-tip="Weather at destination" data-notbuilt="Weather at destination"><span class="i i-md mi">cloud_queue</span></button>
+          <button class="icon-btn" data-tip="Measure dimensions" data-notbuilt="Dimension calculator"><span class="i i-md mi">square_foot</span></button>
+          <button class="icon-btn" data-tip="View consignment" data-notbuilt="Consignment view (read-only)"><span class="i i-md mi">visibility</span></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tabs + pickup/delivery -->
+    <div>
+      <div class="tabs" role="tablist" id="ce-tabs" aria-label="Consignment sections">
+        <button class="tab" role="tab" aria-selected="true" data-tab="edit">Edit</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="Routing">Routing</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="Item">Item</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="Rev &amp; costs">Rev &amp; costs</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="Invoices">Invoices</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="Notifications">Notifications</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="Postings">Postings</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="Structured postings">Structured postings</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="Endorsements">Endorsements <span class="i mi err" data-tip="1 endorsement needs attention">error_outline</span></button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="Audit">Audit</button>
+      </div>
+      <div class="tab-panel-placeholder card" id="ce-tab-placeholder" hidden></div>
+
+      <div class="stack" id="ce-edit-panel">
+        <!-- PICKUP -->
+        <section class="card card-pad addr-card" data-addr="pickup" aria-label="Pickup from">
+          <div class="addr-grid">
+            <div class="sec-label">Pickup from</div>
+            <div class="field auto has-start filled disabled o-lock" data-lookup="addresses" data-on-pick="address">
+              <span class="adorn-start"><span class="i mi">search</span></span>
+              <input class="ctl" id="p-code" value="MAINDC - COURIER" autocomplete="off" disabled>
+              <label for="p-code">Code/Name</label>
+              <span class="adorn-end"><button type="button" class="icon-btn sm clear-btn" data-tip="Clear" aria-label="Clear"><span class="i i-xs mi">close</span></button><span class="i mi caret">arrow_drop_down</span></span>
+            </div>
+            <div class="field filled disabled o-lock" style="grid-column: span 2"><input class="ctl" id="p-addr" data-k="address" value="C/- MAINFREIGHT TRANSPORT SOUTH DUNEDIN DUNEDIN NEW ZEALAND" disabled><label for="p-addr">Address</label></div>
+            <div class="addr-icons">
+              <button class="icon-btn" data-tip="Show on map" data-notbuilt="Map view – pickup address"><span class="i mi">map</span></button>
+              <button class="icon-btn" data-tip="Address history" data-notbuilt="Pickup address history"><span class="i mi">history</span></button>
+              <button class="icon-btn" data-tip="Pickup run" data-notbuilt="Pickup run details"><span class="i mi">local_shipping</span></button>
+            </div>
+            <div class="field select filled disabled o-lock"><select class="ctl" id="p-site" data-k="site" disabled><option>DUN03</option><option>DUN01</option><option>MCF03</option><option>AKL01</option><option>CHC02</option></select><label for="p-site">Site</label></div>
+            <div class="field select filled disabled o-lock"><select class="ctl" id="p-zone" data-k="zone" disabled><option>1</option><option>2</option><option>3</option><option>9</option></select><label for="p-zone">Zone</label></div>
+            <div class="call-row">
+              <label class="check"><input type="checkbox"><span class="box"></span>Call required</label>
+              <button class="btn btn-outlined sm" data-notbuilt="Pickup call details"><span class="i mi">add</span>Details</button>
+            </div>
+
+            <label class="check"><input type="checkbox" class="override"><span class="box"></span>Override</label>
+            <div class="field disabled o-lock"><input class="ctl" id="p-addr2" data-k="address2" disabled><label for="p-addr2">Address 2</label></div>
+            <div class="field filled disabled o-lock"><input class="ctl" id="p-suburb" data-k="suburb" value="SOUTH DUNEDIN" disabled><label for="p-suburb">Suburb</label></div>
+            <div class="field filled disabled o-lock"><input class="ctl" id="p-city" data-k="city" value="DUNEDIN" disabled><label for="p-city">City</label></div>
+            <div></div>
+            <div class="field select filled disabled o-lock" style="grid-column: span 2"><select class="ctl" id="p-branch" data-k="branch" disabled><option>03NZ - MAINFREIGHT DUNEDIN</option><option>01NZ - MAINFREIGHT AUCKLAND</option><option>02NZ - MAINFREIGHT CHRISTCHURCH</option></select><label for="p-branch">Branch</label></div>
+            <div class="field"><input class="ctl" id="p-release"><label for="p-release">Release/Pickup #</label></div>
+
+            <div></div>
+            <div class="field select filled"><select class="ctl" id="p-contact"><option>Customer Service</option><option>Dispatch Desk</option><option>Warehouse Manager</option><option value="">—</option></select><label for="p-contact">Contact</label></div>
+            <div class="field filled"><input class="ctl" id="p-phone" data-k="phone" value="034551009" inputmode="tel"><label for="p-phone">Phone</label></div>
+            <div class="field"><input class="ctl" id="p-email" type="email" data-k="email"><label for="p-email">Email</label></div>
+            <div></div>
+            <div class="field filled" style="grid-column: span 2"><input class="ctl" id="p-sendref" value="554311"><label for="p-sendref">Send ref</label></div>
+            <div class="pair">
+              <div class="field always-float"><input class="ctl" type="datetime-local" id="p-ready"><label for="p-ready">Pickup ready from</label></div>
+              <div class="field always-float required"><input class="ctl" type="datetime-local" id="p-basic" data-required><label for="p-basic">Basic date field<span class="req-star">*</span></label></div>
+              <span style="width:28px"></span>
+            </div>
+          </div>
+        </section>
+
+        <!-- DELIVERY -->
+        <section class="card card-pad addr-card" data-addr="delivery" aria-label="Delivery to">
+          <div class="addr-grid">
+            <div class="sec-label">Delivery to</div>
+            <div class="field auto has-start filled disabled o-lock" data-lookup="addresses" data-on-pick="address">
+              <span class="adorn-start"><span class="i mi">search</span></span>
+              <input class="ctl" id="d-code" value="MCRIMME - OCEANA GOLD OPEN" autocomplete="off" disabled>
+              <label for="d-code">Code/Name</label>
+              <span class="adorn-end"><button type="button" class="icon-btn sm clear-btn" data-tip="Clear" aria-label="Clear"><span class="i i-xs mi">close</span></button><span class="i mi caret">arrow_drop_down</span></span>
+            </div>
+            <div class="field filled disabled o-lock" style="grid-column: span 2"><input class="ctl" id="d-addr" data-k="address" value="OPEN PIT WORKSHOP GOLDEN POINT ROAD MACRAES FLAT" disabled><label for="d-addr">Address</label></div>
+            <div class="addr-icons">
+              <button class="icon-btn" data-tip="Show on map" data-notbuilt="Map view – delivery address"><span class="i mi">map</span></button>
+              <button class="icon-btn" data-tip="Address history" data-notbuilt="Delivery address history"><span class="i mi">history</span></button>
+              <button class="icon-btn" data-tip="Delivery run" data-notbuilt="Delivery run details"><span class="i mi">local_shipping</span></button>
+            </div>
+            <div class="field select filled disabled o-lock"><select class="ctl" id="d-site" data-k="site" disabled><option>MCF03</option><option>DUN03</option><option>DUN01</option><option>AKL01</option><option>CHC02</option></select><label for="d-site">Site</label></div>
+            <div class="field select filled disabled o-lock"><select class="ctl" id="d-zone" data-k="zone" disabled><option>9</option><option>1</option><option>2</option><option>3</option></select><label for="d-zone">Zone</label></div>
+            <div class="call-row">
+              <label class="check"><input type="checkbox"><span class="box"></span>Call required</label>
+              <button class="btn btn-outlined sm" data-notbuilt="Delivery call details"><span class="i mi">add</span>Details</button>
+            </div>
+
+            <label class="check"><input type="checkbox" class="override"><span class="box"></span>Override</label>
+            <div class="field filled disabled o-lock"><input class="ctl" id="d-addr2" data-k="address2" value="GOLDEN POINT ROAD" disabled><label for="d-addr2">Address 2</label></div>
+            <div class="field filled disabled o-lock"><input class="ctl" id="d-suburb" data-k="suburb" value="SOUTH DUNEDIN" disabled><label for="d-suburb">Suburb</label></div>
+            <div class="field filled disabled o-lock"><input class="ctl" id="d-city" data-k="city" value="MACRAES FLAT" disabled><label for="d-city">City</label></div>
+            <div></div>
+            <div class="field select filled disabled o-lock" style="grid-column: span 2"><select class="ctl" id="d-branch" data-k="branch" disabled><option>03NZ - MAINFREIGHT DUNEDIN</option><option>01NZ - MAINFREIGHT AUCKLAND</option><option>02NZ - MAINFREIGHT CHRISTCHURCH</option></select><label for="d-branch">Branch</label></div>
+            <div class="pair" style="grid-template-columns: 1fr auto">
+              <div class="field"><input class="ctl" id="d-delno"><label for="d-delno">Delivery #</label></div>
+              <button class="icon-btn sm" data-tip="Delivery # is the receiver's booking reference"><span class="i mi">info_outline</span></button>
+            </div>
+
+            <div></div>
+            <div class="field select"><select class="ctl" id="d-contact"><option value=""></option><option>Site Supervisor</option><option>Workshop Manager</option><option>Gatehouse</option></select><label for="d-contact">Contact</label></div>
+            <div class="field filled"><input class="ctl" id="d-phone" data-k="phone" value="034551009" inputmode="tel"><label for="d-phone">Phone</label></div>
+            <div class="field"><input class="ctl" id="d-email" type="email" data-k="email"><label for="d-email">Email</label></div>
+            <div></div>
+            <div class="field filled" style="grid-column: span 2"><input class="ctl" id="d-sendref" value="554311"><label for="d-sendref">Send ref</label></div>
+            <div class="pair">
+              <div class="field always-float"><input class="ctl" type="datetime-local" id="d-from"><label for="d-from">Required delivery from</label></div>
+              <div class="field always-float"><input class="ctl" type="datetime-local" id="d-by"><label for="d-by">Required delivery by</label></div>
+              <button class="icon-btn sm" data-tip="Leave blank for standard transit time"><span class="i mi">info_outline</span></button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ITEMS GRID -->
+    <section class="card items-card" aria-label="Items">
+      <div class="card-head"><button class="btn btn-outlined sm" id="add-item"><span class="i mi">add</span>Add</button></div>
+      <div class="grid-wrap">
+        <table class="grid items-grid">
+          <thead><tr>
+            <th class="num" style="width:90px">Pieces</th><th style="width:150px">Type</th><th>Description</th>
+            <th class="num" style="width:80px">W-KG</th><th class="num" style="width:82px">Length-M</th><th class="num" style="width:82px">Width-M</th><th class="num" style="width:82px">Height-M</th><th class="num" style="width:82px">VOL-M3</th>
+            <th class="num" style="width:90px">Chargeable</th><th class="center" style="width:60px">Stack</th><th class="num" style="width:100px">UN Number</th><th style="width:96px">DG Class</th><th class="num" style="width:100px">Sub Risk</th><th class="col-actions" style="width:56px"><span class="sr-only">Actions</span></th>
+          </tr></thead>
+          <tbody id="items-body"></tbody>
+          <tfoot><tr class="totals" id="items-totals"></tr></tfoot>
+        </table>
+      </div>
+      <div class="items-chips">
+        <button class="chip toggle" aria-pressed="false" data-tip="Said to contain">STC</button>
+        <span style="width:128px"></span>
+        <button class="chip toggle" aria-pressed="false" data-tip="Hire equipment">HIRE</button>
+        <button class="chip toggle" aria-pressed="false" data-tip="Shipped as declared">SHIPPED AS</button>
+      </div>
+    </section>
+
+    <!-- Sales rep + attributes -->
+    <div class="misc-row">
+      <section class="card card-pad">
+        <div class="field auto filled" data-lookup="reps" style="flex: 1 1 200px">
+          <input class="ctl" id="f-rep" value="Robert Snout" autocomplete="off">
+          <label for="f-rep">Sales rep</label>
+          <span class="adorn-end"><button type="button" class="icon-btn sm clear-btn" data-tip="Clear" aria-label="Clear"><span class="i i-xs mi">close</span></button><span class="i mi caret">arrow_drop_down</span></span>
+        </div>
+        <div class="field select" style="flex: 1 1 200px"><select class="ctl" id="f-distance"><option value=""></option><option>0–50 km</option><option>51–200 km</option><option>201–500 km</option><option>500+ km</option></select><label for="f-distance">Total consignment distance</label></div>
+        <label class="check"><input type="checkbox"><span class="box"></span>Stick</label>
+        <div class="field select filled" style="flex: 1 1 200px"><select class="ctl" id="f-cover"><option>LCR</option><option>Owner's risk</option><option>Full cover</option></select><label for="f-cover">Total cover</label></div>
+      </section>
+      <section class="card card-pad">
+        <span class="attr-label">Attributes</span>
+        <label class="check"><input type="checkbox"><span class="box"></span>Foodstuff</label>
+        <label class="check"><input type="checkbox"><span class="box"></span>Freight Forward</label>
+        <label class="check"><input type="checkbox"><span class="box"></span>PODN</label>
+        <label class="check"><input type="checkbox"><span class="box"></span>Must Deliver</label>
+        <label class="check"><input type="checkbox"><span class="box"></span>Return</label>
+      </section>
+    </div>
+
+    <div class="row-2">
+      <section class="card">
+        <div class="card-head"><h2 class="card-title">Consignment Notes Extra</h2></div>
+        <div class="grid-wrap"><table class="grid">
+          <thead><tr><th style="width:110px">Cost Code</th><th>Description</th><th style="width:110px">Approval #</th><th style="width:200px">What/Who</th></tr></thead>
+          <tbody>
+            <tr><td>HIB</td><td>Hiab</td><td>170561857</td><td>Accepted</td></tr>
+            <tr><td>RES</td><td>Residential Address</td><td>170561858</td><td>Accepted</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+      <section class="card">
+        <div class="card-head"><h2 class="card-title">Documents</h2><button class="btn btn-outlined sm" data-notbuilt="Upload document"><span class="i mi">upload_file</span>Upload</button></div>
+        <div class="grid-wrap"><table class="grid">
+          <thead><tr><th style="width:130px">Document Type</th><th>Description</th><th style="width:170px">Uploaded At</th><th>Uploaded By</th><th class="col-actions" style="width:48px"><span class="sr-only">Actions</span></th></tr></thead>
+          <tbody id="docs-body"></tbody>
+        </table></div>
+      </section>
+      <section class="card">
+        <div class="card-head"><h2 class="card-title">Reference</h2></div>
+        <div class="grid-wrap"><table class="grid">
+          <thead><tr><th>Reference Type</th><th class="num">Reference Number</th><th class="col-actions"><span class="sr-only">Actions</span></th></tr></thead>
+          <tbody id="refs-body"></tbody>
+        </table></div>
+      </section>
+      <section class="card">
+        <div class="card-head"><h2 class="card-title">OnIssues</h2><button class="btn btn-outlined sm" data-notbuilt="OnIssue (opens in OnIssue system)">OnIssue<span class="i mi">open_in_new</span></button></div>
+        <div class="grid-wrap"><table class="grid">
+          <thead><tr><th>OnIssue Number</th><th>Issue Type</th><th>Date Raised</th><th>Date Closed</th></tr></thead>
+          <tbody><tr class="empty"><td colspan="4">No items</td></tr></tbody>
+        </table></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Sticky action bar (Figma: Frame 15924) -->
+  <footer class="action-bar" aria-label="Consignment actions">
+    <button class="btn btn-contained btn-destructive" id="btn-delete"><span class="i mi">delete</span>Delete</button>
+    <button class="btn btn-text destructive" id="btn-cancel">Cancel</button>
+    <span class="spacer"></span>
+    <div class="split"><button class="btn btn-outlined" data-split-main="label">Label</button><button class="btn btn-outlined split-arrow" data-menu="split-label" aria-label="Label options" aria-haspopup="menu" aria-expanded="false"><span class="i mi">arrow_drop_down</span></button></div>
+    <div class="split"><button class="btn btn-outlined" data-split-main="print">Print</button><button class="btn btn-outlined split-arrow" data-menu="split-print" aria-label="Print options" aria-haspopup="menu" aria-expanded="false"><span class="i mi">arrow_drop_down</span></button></div>
+    <div class="split"><button class="btn btn-outlined" data-split-main="copy">Copy</button><button class="btn btn-outlined split-arrow" data-menu="split-copy" aria-label="Copy options" aria-haspopup="menu" aria-expanded="false"><span class="i mi">arrow_drop_down</span></button></div>
+    <button class="btn btn-contained" id="btn-save"><span class="i mi">save</span>Save</button>
+    <button class="icon-btn" data-tip="More actions" data-menu="ce-more" aria-label="More actions"><span class="i mi">more_vert</span></button>
+  </footer>
+</main>
+
+<!-- ============================ TRANSPORT DISPATCH (Figma 4766:161348) ============================ -->
+<main class="page screen figma-screen" id="screen-dispatch" hidden>
+  <div class="page-head">
+    <h1 class="page-title">Transport Dispatch</h1>
+  </div>
+
+  <div class="tabs-row">
+  <div class="tabs dispatch-tabs" role="tablist" id="dp-tabs" aria-label="Dispatch views">
+    <button class="tab" role="tab" aria-selected="false" data-tab="Call Required">Call Required <span class="count">(0, 0, 12, 117)</span></button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="Depot">Depot <span class="count">(124, 80)</span></button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="SMS">SMS <span class="count">(0, 0, 0)</span></button>
+    <button class="tab" role="tab" aria-selected="true" data-tab="unallocated">Unallocated</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="Transfer">Transfer</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="Allocated">Allocated <span class="count" id="allocated-count">(536, 288)</span></button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="Run Admin">Run Admin</button>
+  </div>
+    <div class="tabs-extra">
+      <div class="split sm"><button class="btn btn-outlined sm" id="btn-refresh">Refresh</button><button class="btn btn-outlined sm split-arrow" data-menu="refresh-interval" aria-label="Auto-refresh interval" aria-haspopup="menu" aria-expanded="false" id="refresh-interval-btn" style="width:auto;padding:0 6px 0 8px"><span id="refresh-interval-label">3 MIN</span><span class="i mi">arrow_drop_down</span></button></div>
+      <span class="refresh-meta">Last <span id="last-refresh">12:39:05</span></span>
+    </div>
+  </div>
+  <div class="tab-panel-placeholder card" id="dp-tab-placeholder" hidden></div>
+
+  <div class="stack" id="dp-unallocated">
+    <section class="card filter-bar" aria-label="Filters">
+      <div class="field select filled"><select class="ctl" id="flt-group" data-default="ALL"><option>ALL</option><option>Pickups</option><option>Deliveries</option><option>Linehaul</option></select><label for="flt-group">Dispatch Group</label></div>
+      <div class="field filled always-float"><input class="ctl" type="date" id="flt-date" value="2026-06-10" data-default="2026-06-10"><label for="flt-date">Date</label></div>
+      <div class="field select filled"><select class="ctl" id="flt-cgroup" data-default="(All Jobs)"><option>(All Jobs)</option><option>Key accounts</option><option>Retail</option><option>Industrial</option></select><label for="flt-cgroup">Customer Group</label></div>
+      <div class="field select filled"><select class="ctl" id="flt-applied" data-default="Sender"><option>Sender</option><option>Receiver</option><option>Either</option></select><label for="flt-applied">Applied to</label></div>
+      <div class="field"><input class="ctl" id="flt-lh" data-default=""><label for="flt-lh">LH Jobs</label></div>
+      <div class="field select filled" style="width:220px"><button type="button" class="ctl" id="flt-hide" data-menu="hide-menu" style="text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Unmanifested, Complete, On hold</button><label for="flt-hide">Hide</label></div>
+      <button class="btn btn-outlined sm" id="btn-filters" aria-haspopup="dialog" aria-expanded="false" aria-controls="filter-sheet">Filters<span class="btn-badge" id="filter-count" hidden></span></button>
+      <button class="btn btn-text sm destructive" id="flt-clear">Clear</button>
+      <!-- ONE DS DataGrid/Filtering: "Active filters are always shown" -->
+      <div class="active-filters" id="active-filters" aria-label="Active filters" hidden></div>
+    </section>
+
+    <section class="card" aria-label="Zone summary">
+      <div class="grid-wrap" style="border-top:0;border-radius:var(--radius-md)"><table class="grid zone-grid" id="zone-grid"></table></div>
+    </section>
+
+    <div class="dispatch-grids">
+      <section class="card" aria-label="Unallocated jobs">
+        <div class="card-head" id="jobs-head"><h2 class="card-title" id="jobs-title">Jobs - Not Dispatched (Pickups) for zone OTAHUHU</h2></div>
+        <div class="bulk-bar" id="jobs-bulk" hidden>
+          <span class="count" id="bulk-count">0 selected</span>
+          <button class="btn btn-text sm destructive" id="bulk-clear">Clear</button>
+          <span class="spacer" style="flex:1"></span>
+          <!-- Bulk actions per Figma 4770:195664 -->
+          <button class="btn btn-outlined sm" data-bulk="Reinitialise">Reinitialise</button>
+          <button class="btn btn-outlined sm" data-bulk="Delivery receipt">Delivery receipt</button>
+          <button class="btn btn-outlined sm" data-bulk="Consignment">Consignment</button>
+          <button class="btn btn-outlined sm" data-bulk="Print labels">Print labels</button>
+          <button class="btn btn-outlined sm" data-bulk="Advise customer">Advise customer</button>
+        </div>
+        <div class="grid-wrap"><table class="grid jobs-grid" id="jobs-table">
+          <thead><tr>
+            <th class="col-check"><label class="check"><input type="checkbox" id="jobs-all" aria-label="Select all jobs on this page"><span class="box"></span></label></th>
+            <th style="width:36px"></th>
+            <th>Consignment Customer<br>Sender Site / Carrier</th>
+            <th>Postcode / Suburb<br>Address</th>
+            <th>Service</th>
+            <th>Req. From<br>Req. To</th>
+            <th class="num">Pieces<br>Type</th>
+            <th class="num">Kilos Meters<br>Dims</th>
+            <th>DG</th>
+            <th>Alerts<br>Special Info</th>
+            <th class="num">Status</th>
+          </tr></thead>
+        </table></div>
+        <div class="grid-foot" id="jobs-foot"></div>
+      </section>
+
+      <section class="card" aria-label="Cartage drivers">
+        <div class="card-head"><h2 class="card-title" id="drivers-title">Cartage - for zone OTAHUHU</h2></div>
+        <div class="grid-wrap"><table class="grid drivers-grid zebra">
+          <thead><tr>
+            <th class="col-check"><span class="sr-only">Select driver</span></th>
+            <th>Driver #</th><th>Driver Name</th><th>Type</th>
+            <th class="num">PRE</th><th class="num">ALL</th><th class="num">NACC</th><th class="num">NOB</th><th class="num">NOD</th>
+            <th class="num">TOTAL</th><th class="num">Pieces</th><th class="num">Meters</th><th class="num">Kilo</th>
+          </tr></thead>
+          <tbody id="drivers-body"></tbody>
+        </table></div>
+        <div class="grid-foot" id="drivers-foot"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ============ Filters side sheet ============
+       Replaces the legacy "Show Filters" overlay (Figma 4775:202718).
+       ONE DS: Side Sheet (Drawer from the right, no backdrop so the grid stays usable),
+       Side Sheet Footer (Ghost left; Secondary + Primary right), Forms, Checkbox, Radio, Date Field. -->
+  <aside class="sheet" id="filter-sheet" role="dialog" aria-modal="false" aria-labelledby="filter-sheet-title" hidden>
+    <header class="sheet-head">
+      <h2 class="sheet-title" id="filter-sheet-title">Filters</h2>
+      <button class="icon-btn sm" data-sheet-close aria-label="Close filters" data-tip="Close"><i class="fa-solid fa-xmark"></i></button>
+    </header>
+    <div class="sheet-body">
+      <section class="sheet-section">
+        <h3>Saved filters</h3>
+        <div class="field select saved-field" id="saved-field"><button type="button" class="ctl" id="flt-saved" data-menu="saved-filters" aria-haspopup="menu" aria-expanded="false"></button><label for="flt-saved">Saved filter</label></div>
+        <p class="sheet-hint" style="margin:6px 0 0">Choosing one applies it straight away. Use <b>Save filter</b> below to save what you've set up.</p>
+      </section>
+
+      <section class="sheet-section">
+        <h3>Dates</h3>
+        <div class="sheet-grid">
+          <div class="field always-float"><input class="ctl" type="date" id="sf-from"><label for="sf-from">Date from</label></div>
+          <div class="field always-float required"><input class="ctl" type="date" id="sf-to"><label for="sf-to">Date to<span class="req-star">*</span></label></div>
+        </div>
+      </section>
+
+      <section class="sheet-section">
+        <h3>Linehaul</h3>
+        <div class="sheet-grid">
+          <div class="field select"><select class="ctl" id="sf-linehaul"><option value=""></option><option>AKL01 → HLZ02</option><option>AKL01 → WLG01</option><option>CHC02 → AKL01</option><option>DUN03 → AKL01</option></select><label for="sf-linehaul">Linehaul</label></div>
+          <div class="field always-float disabled" id="sf-lh-time-field"><input class="ctl" type="time" id="sf-lh-time" disabled><label for="sf-lh-time">Linehaul arrival time</label><div class="helper">Choose a linehaul first</div></div>
+        </div>
+      </section>
+
+      <section class="sheet-section">
+        <h3>Show only</h3>
+        <div class="check-list" id="sf-scope"></div>
+      </section>
+
+      <section class="sheet-section">
+        <h3>Hide jobs that are</h3>
+        <div class="check-list" id="sf-hide"></div>
+      </section>
+
+      <section class="sheet-section">
+        <h3>Consignment attributes</h3>
+        <p class="sheet-hint">Show only consignments with an attribute, or hide them.</p>
+        <table class="grid attr-grid">
+          <thead><tr><th>Attribute</th><th class="center">Any</th><th class="center">Show only</th><th class="center">Hide</th></tr></thead>
+          <tbody id="sf-attrs"></tbody>
+        </table>
+      </section>
+    </div>
+    <footer class="sheet-foot">
+      <button class="btn btn-text btn-destructive" id="sf-clear">Clear all</button>
+      <span class="spacer"></span>
+      <button class="btn btn-outlined" id="sf-save">Save filter</button>
+      <button class="btn btn-contained" id="sf-apply">Apply</button>
+    </footer>
+  </aside>
+
+  <!-- Sticky action bar (same pattern as Consignment Edit footer) -->
+  <footer class="action-bar" aria-label="Dispatch actions">
+    <span class="alloc-summary" id="alloc-summary" aria-live="polite"></span>
+    <span class="spacer"></span>
+    <!-- Allocation actions: three separate Secondary (outlined) buttons, no Primary -->
+    <div class="btn-group" role="group" aria-label="Allocation actions">
+      <button class="btn btn-outlined" data-alloc="pre">Pre-allocate</button>
+      <button class="btn btn-outlined" data-alloc="allocate">Allocate</button>
+      <button class="btn btn-outlined" data-alloc="accept">Accept</button>
+    </div>
+  </footer>
+</main>
+
+<!-- ============================ NOT BUILT (ONE DS styling; no Figma design) ============================ -->
+<main class="page" id="screen-notbuilt" hidden>
+  <div class="not-built" role="status">
+    <i class="i fa-solid fa-compass-drafting" aria-hidden="true"></i>
+    <h1>Not built in this prototype</h1>
+    <p>This would open:</p>
+    <div class="what" id="nb-what">—</div>
+    <p class="caption">The prototype only covers these screens:</p>
+    <div class="nb-links">
+      <a class="btn btn-text sm" href="#/consignment">Consignment Edit<span class="i mi">arrow_forward</span></a>
+      <a class="btn btn-text sm" href="#/dispatch">Transport Dispatch<span class="i mi">arrow_forward</span></a>
+    </div>
+    <div class="actions" style="margin-top:24px">
+      <button class="btn btn-contained" id="nb-back"><span class="i mi">arrow_back</span>Go back</button>
+    </div>
+  </div>
+</main>
+
+<!-- Snackbar (ONE DS: Snackbar) -->
+<div class="snackbar" id="snackbar" role="status" aria-live="polite">
+  <span class="msg" id="snackbar-msg"></span>
+  <button class="btn btn-text sm" id="snackbar-action" hidden>Undo</button>
+  <button class="icon-btn sm" id="snackbar-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+</div>
+<div class="tooltip" id="tooltip" role="tooltip"></div>
+
+<script src="app.js?v=15"></script>
+</body>
+</html>
