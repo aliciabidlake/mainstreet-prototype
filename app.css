@@ -1125,3 +1125,6 @@ table.grid { width: 100%; border-collapse: separate; border-spacing: 0; font: va
 .welcome-tips ul { margin: 8px 0 0; padding-left: 18px; font: var(--typography-body1); color: var(--text-primary); }
 .welcome-tips li { margin: 4px 0; }
 @media (max-width: 760px) { .welcome-links { grid-template-columns: 1fr; } }
+
+/* Welcome cards without the "try" lists: keep the Open link spaced below the description */
+.wc-desc { margin-bottom: 8px; }
