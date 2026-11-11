@@ -393,15 +393,15 @@ const fmt = n => (Math.round(n * 1000) / 1000).toLocaleString('en-NZ', { maximum
 function renderItems() {
   $('#items-body').innerHTML = items.map((it, i) => `
     <tr data-i="${i}">
-      <td class="td-edit"><input class="cell-input num" data-f="pieces" value="${it.pieces}" placeholder="Enter…" inputmode="numeric" aria-label="Pieces, row ${i + 1}"></td>
-      <td class="td-edit"><select class="cell-input cell-select${it.type ? '' : ' is-empty'}" data-f="type" aria-label="Type, row ${i + 1}"><option value="" disabled hidden ${it.type ? '' : 'selected'}>Select…</option>${ITEM_TYPES.map(t => `<option ${t === it.type ? 'selected' : ''}>${t}</option>`).join('')}</select></td>
-      <td class="td-edit"><input class="cell-input" data-f="desc" value="${esc(it.desc)}" placeholder="Enter…" aria-label="Description, row ${i + 1}"></td>
-      ${['kg', 'l', 'w', 'h', 'vol'].map(f => `<td class="td-edit"><input class="cell-input num" data-f="${f}" value="${it[f]}" placeholder="Enter…" inputmode="decimal" aria-label="${{ kg: 'W-KG', l: 'Length-M', w: 'Width-M', h: 'Height-M', vol: 'VOL-M3' }[f]}, row ${i + 1}"></td>`).join('')}
+      <td class="td-edit"><input class="cell-input num" data-f="pieces" value="${it.pieces}" placeholder="Qty" inputmode="numeric" aria-label="Pieces, row ${i + 1}"></td>
+      <td class="td-edit"><select class="cell-input cell-select${it.type ? '' : ' is-empty'}" data-f="type" aria-label="Type, row ${i + 1}"><option value="" disabled hidden ${it.type ? '' : 'selected'}>Select type…</option>${ITEM_TYPES.map(t => `<option ${t === it.type ? 'selected' : ''}>${t}</option>`).join('')}</select></td>
+      <td class="td-edit"><input class="cell-input" data-f="desc" value="${esc(it.desc)}" placeholder="e.g. Pallet of steel pipe fittings" aria-label="Description, row ${i + 1}"></td>
+      ${['kg', 'l', 'w', 'h', 'vol'].map(f => `<td class="td-edit"><input class="cell-input num" data-f="${f}" value="${it[f]}" placeholder="${ { kg: 'kg', l: 'm', w: 'm', h: 'm', vol: 'm³' }[f] }" inputmode="decimal" aria-label="${{ kg: 'W-KG', l: 'Length-M', w: 'Width-M', h: 'Height-M', vol: 'VOL-M3' }[f]}, row ${i + 1}"></td>`).join('')}
       <td class="num" data-out="charge">${it.charge === '' ? '<span class="muted">—</span>' : fmt(it.charge)}</td>
       <td class="center"><label class="check"><input type="checkbox" data-f="stack" ${it.stack ? 'checked' : ''} aria-label="Stackable, row ${i + 1}"><span class="box"></span></label></td>
-      <td class="td-edit"><input class="cell-input num" data-f="un" value="${esc(it.un)}" placeholder="Enter…" aria-label="UN number, row ${i + 1}"></td>
-      <td class="td-edit"><input class="cell-input" data-f="dg" value="${esc(it.dg)}" placeholder="Enter…" aria-label="DG class, row ${i + 1}"></td>
-      <td class="td-edit"><input class="cell-input num" data-f="sub" value="${esc(it.sub)}" placeholder="Enter…" aria-label="Sub risk, row ${i + 1}"></td>
+      <td class="td-edit"><input class="cell-input num" data-f="un" value="${esc(it.un)}" placeholder="e.g. 1203" aria-label="UN number, row ${i + 1}"></td>
+      <td class="td-edit"><input class="cell-input" data-f="dg" value="${esc(it.dg)}" placeholder="e.g. 3" aria-label="DG class, row ${i + 1}"></td>
+      <td class="td-edit"><input class="cell-input num" data-f="sub" value="${esc(it.sub)}" placeholder="e.g. 6.1" aria-label="Sub risk, row ${i + 1}"></td>
       <td class="col-actions"><button class="icon-btn sm" data-item-details="${i}" data-tip="Item details" aria-label="Item details, row ${i + 1}"><span class="i mi">list_alt</span></button><button class="icon-btn sm" data-del-item="${i}" data-tip="Delete item" aria-label="Delete item ${i + 1}"><span class="i mi">delete</span></button></td>
     </tr>`).join('') || `<tr class="empty"><td colspan="14">No items. Use ADD to add one.</td></tr>`;
   renderTotals();
@@ -461,11 +461,46 @@ function renderDocs() {
     <td class="col-actions"><button class="icon-btn sm" data-del-doc="${i}" data-tip="Delete document" aria-label="Delete document"><span class="i mi">delete</span></button></td></tr>`).join('')
     || '<tr class="empty"><td colspan="5">No items</td></tr>';
 }
+// References: Add (card toolbar) and Edit both work inline in the row — type + number, save/cancel icons
+const REF_TYPES = ['Sender Ref', 'Receiver Ref', 'Purchase Order', 'Invoice Number', 'Booking Ref', 'Customer Ref'];
+let refEditing = null; // index being edited, or 'new'
 function renderRefs() {
-  $('#refs-body').innerHTML = refs.map((r, i) => `<tr><td>${esc(r.type)}</td><td class="num">${esc(r.num)}</td>
-    <td class="col-actions"><button class="icon-btn sm" data-notbuilt="Edit reference – ${esc(r.type)}" data-tip="Edit reference" aria-label="Edit reference"><span class="i mi">edit</span></button><button class="icon-btn sm" data-del-ref="${i}" data-tip="Delete reference" aria-label="Delete reference"><span class="i mi">delete</span></button></td></tr>`).join('')
-    || '<tr class="empty"><td colspan="3">No items</td></tr>';
+  const editRow = (r, key) => `<tr class="ref-edit" data-ref-edit="${key}">
+      <td class="td-edit"><select class="cell-input cell-select${r.type ? '' : ' is-empty'}" data-ref-k="type" aria-label="Reference type"><option value="" disabled hidden ${r.type ? '' : 'selected'}>Select type…</option>${REF_TYPES.map(t => `<option ${t === r.type ? 'selected' : ''}>${t}</option>`).join('')}</select></td>
+      <td class="td-edit"><input class="cell-input num" data-ref-k="num" value="${esc(r.num || '')}" placeholder="e.g. PO-88213" aria-label="Reference number"></td>
+      <td class="col-actions"><button class="icon-btn sm" data-ref-save aria-label="Save reference" data-tip="Save"><span class="i mi">check</span></button><button class="icon-btn sm" data-ref-cancel aria-label="Cancel" data-tip="Cancel"><span class="i mi">close</span></button></td></tr>`;
+  const view = refs.map((r, i) => refEditing === i ? editRow(r, i) : `<tr><td>${esc(r.type)}</td><td class="num">${esc(r.num)}</td>
+    <td class="col-actions"><button class="icon-btn sm" data-edit-ref="${i}" data-tip="Edit reference" aria-label="Edit ${esc(r.type)}"><span class="i mi">edit</span></button><button class="icon-btn sm" data-del-ref="${i}" data-tip="Delete reference" aria-label="Delete ${esc(r.type)}"><span class="i mi">delete</span></button></td></tr>`).join('');
+  $('#refs-body').innerHTML = (view + (refEditing === 'new' ? editRow({}, 'new') : ''))
+    || '<tr class="empty"><td colspan="3">No references. Use Add to add one.</td></tr>';
+  const first = $('#refs-body .ref-edit .cell-input'); if (first) first.focus();
 }
+function saveRef() {
+  const tr = $('#refs-body .ref-edit'); if (!tr) return;
+  const type = $('[data-ref-k="type"]', tr), num = $('[data-ref-k="num"]', tr);
+  let ok = true;
+  [type, num].forEach(el => { const miss = !el.value.trim(); el.classList.toggle('invalid', miss); el.setAttribute('aria-invalid', String(miss)); if (miss) ok = false; });
+  if (!ok) { (type.value ? num : type).focus(); return; }
+  const r = { type: type.value, num: num.value.trim() };
+  if (refEditing === 'new') refs.push(r); else refs[refEditing] = r;
+  const added = refEditing === 'new';
+  refEditing = null; dirty = true; hideTip(); renderRefs();
+  snack(`${r.type} ${added ? 'added' : 'updated'}`);
+}
+$('#ref-add').addEventListener('click', () => { refEditing = 'new'; renderRefs(); });
+$('#refs-body').addEventListener('click', e => {
+  const ed = e.target.closest('[data-edit-ref]');
+  if (ed) { refEditing = +ed.dataset.editRef; hideTip(); return renderRefs(); }
+  if (e.target.closest('[data-ref-save]')) return saveRef();
+  if (e.target.closest('[data-ref-cancel]')) { refEditing = null; hideTip(); renderRefs(); }
+});
+$('#refs-body').addEventListener('keydown', e => {
+  if (!e.target.closest('.ref-edit')) return;
+  if (e.key === 'Enter') { e.preventDefault(); saveRef(); }
+  if (e.key === 'Escape') { refEditing = null; renderRefs(); }
+});
+$('#refs-body').addEventListener('change', e => { if (e.target.matches('.cell-select')) { e.target.classList.toggle('is-empty', !e.target.value); e.target.classList.remove('invalid'); } });
+$('#refs-body').addEventListener('input', e => { if (e.target.matches('.cell-input')) e.target.classList.remove('invalid'); });
 document.addEventListener('click', e => {
   const d = e.target.closest('[data-del-doc]');
   if (d) {
@@ -1425,20 +1460,20 @@ const HIRE_COMPANIES = ['CHEP', 'Loscam', 'PalletPlus'];
 const HIRE_ACCOUNTS = { CHEP: 'CHEP 4021987 – MCRMIMME', Loscam: 'LOS 118 204 – MCRMIMME', PalletPlus: 'PP 77 0193 – MCRMIMME' };
 const EXTRAS = {
   stc: { title: 'Said to Contain (STC)', size: 'sm', noun: 'line', columns: [
-    { key: 'pieces', label: 'Pieces', type: 'number', width: 90 },
-    { key: 'type', label: 'Type', type: 'select', options: () => ITEM_TYPES, width: 150 },
-    { key: 'desc', label: 'Description', type: 'text' }] },
+    { key: 'pieces', label: 'Pieces', type: 'number', width: 90, ph: 'Qty' },
+    { key: 'type', label: 'Type', type: 'select', options: () => ITEM_TYPES, width: 150, ph: 'Select type…' },
+    { key: 'desc', label: 'Description', type: 'text', ph: 'e.g. 20 cartons of wine' }] },
   shipped: { title: 'Shipped As', size: 'sm', noun: 'line', columns: [
-    { key: 'pieces', label: 'Pieces', type: 'number', width: 90 },
-    { key: 'type', label: 'Type', type: 'select', options: () => ITEM_TYPES, width: 150 },
-    { key: 'desc', label: 'Description', type: 'text' }] },
+    { key: 'pieces', label: 'Pieces', type: 'number', width: 90, ph: 'Qty' },
+    { key: 'type', label: 'Type', type: 'select', options: () => ITEM_TYPES, width: 150, ph: 'Select type…' },
+    { key: 'desc', label: 'Description', type: 'text', ph: 'e.g. Machinery parts' }] },
   hire: { title: 'Hire', size: 'md', noun: 'hire line', columns: [
-    { key: 'company', label: 'Company', type: 'select', required: true, options: () => HIRE_COMPANIES, width: 120 },
-    { key: 'txn', label: 'Transaction type', type: 'select', required: true, options: () => ['Transfer in', 'Transfer out', 'Hire'], width: 140 },
+    { key: 'company', label: 'Company', type: 'select', required: true, options: () => HIRE_COMPANIES, width: 120, ph: 'Select company…' },
+    { key: 'txn', label: 'Transaction type', type: 'select', required: true, options: () => ['Transfer in', 'Transfer out', 'Hire'], width: 140, ph: 'Select type…' },
     { key: 'from', label: 'From account', type: 'readonly', value: r => HIRE_ACCOUNTS[r.company] || '' },
-    { key: 'to', label: 'To account', type: 'text', required: true },
-    { key: 'pallet', label: 'Pallet type', type: 'select', required: true, options: () => ['Standard 1165 × 1165', 'Half pallet', 'Euro 1200 × 800'], width: 160 },
-    { key: 'qty', label: 'Quantity', type: 'number', required: true, width: 90 }] },
+    { key: 'to', label: 'To account', type: 'text', required: true, ph: 'Account number' },
+    { key: 'pallet', label: 'Pallet type', type: 'select', required: true, options: () => ['Standard 1165 × 1165', 'Half pallet', 'Euro 1200 × 800'], width: 160, ph: 'Select pallet…' },
+    { key: 'qty', label: 'Quantity', type: 'number', required: true, width: 90, ph: 'Qty' }] },
 };
 const extrasData = { stc: [], shipped: [], hire: [] };
 
@@ -1482,8 +1517,8 @@ function openExtraDialog(key) {
     tbody.innerHTML = rows.map((r, i) => `<tr>${cfg.columns.map(c => {
       const req = c.required ? ' req' : '', aria = `aria-label="${c.label}, row ${i + 1}"`;
       if (c.type === 'readonly') return `<td class="xg-ro">${esc(c.value(r)) || '<span class="muted">—</span>'}</td>`;
-      if (c.type === 'select') return `<td class="td-edit"><select class="cell-input cell-select${req}${r[c.key] ? '' : ' is-empty'}" data-k="${c.key}" ${aria}><option value="" disabled hidden ${r[c.key] ? '' : 'selected'}>Select…</option>${c.options().map(o => `<option ${o === r[c.key] ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select></td>`;
-      return `<td class="td-edit"><input class="cell-input${c.type === 'number' ? ' num' : ''}${req}" data-k="${c.key}" ${c.type === 'number' ? 'inputmode="numeric"' : ''} value="${esc(r[c.key] ?? '')}" placeholder="Enter…" ${aria}></td>`;
+      if (c.type === 'select') return `<td class="td-edit"><select class="cell-input cell-select${req}${r[c.key] ? '' : ' is-empty'}" data-k="${c.key}" ${aria}><option value="" disabled hidden ${r[c.key] ? '' : 'selected'}>${c.ph || 'Select…'}</option>${c.options().map(o => `<option ${o === r[c.key] ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select></td>`;
+      return `<td class="td-edit"><input class="cell-input${c.type === 'number' ? ' num' : ''}${req}" data-k="${c.key}" ${c.type === 'number' ? 'inputmode="numeric"' : ''} value="${esc(r[c.key] ?? '')}" placeholder="${c.ph || 'Enter…'}" ${aria}></td>`;
     }).join('')}<td class="col-actions"><button class="icon-btn sm" data-xg-del="${i}" aria-label="Delete row ${i + 1}" data-tip="Delete row"><span class="i mi">delete</span></button></td></tr>`).join('')
       || `<tr class="empty"><td colspan="${cfg.columns.length + 1}">No rows. Use Add row to add one.</td></tr>`;
     if (focusRow !== undefined) { const f = $(`tbody tr:nth-child(${focusRow + 1}) .cell-input`, bd); if (f) f.focus(); }
@@ -1525,8 +1560,8 @@ function openItemDetails(index) {
     tbody.innerHTML = vis.map(({ r, i }) => `<tr class="${r.sel ? 'selected' : ''}">
       <td class="col-check"><label class="check"><input type="checkbox" data-id-sel="${i}" ${r.sel ? 'checked' : ''} aria-label="Select ${esc(r.no)}"><span class="box"></span></label></td>
       <td>${esc(r.no)}</td>
-      <td class="td-edit"><input class="cell-input" data-id-k="sscc" data-i="${i}" value="${esc(r.sscc)}" placeholder="Enter…" aria-label="SSCC for ${esc(r.no)}"></td>
-      <td class="td-edit"><input class="cell-input" data-id-k="cust" data-i="${i}" value="${esc(r.cust)}" placeholder="Enter…" aria-label="Customer item number for ${esc(r.no)}"></td>
+      <td class="td-edit"><input class="cell-input" data-id-k="sscc" data-i="${i}" value="${esc(r.sscc)}" placeholder="18-digit SSCC" aria-label="SSCC for ${esc(r.no)}"></td>
+      <td class="td-edit"><input class="cell-input" data-id-k="cust" data-i="${i}" value="${esc(r.cust)}" placeholder="e.g. PO-4471-01" aria-label="Customer item number for ${esc(r.no)}"></td>
       <td class="col-actions"><button class="icon-btn sm" data-id-del="${i}" aria-label="Delete ${esc(r.no)}" data-tip="Delete item"><span class="i mi">delete</span></button></td></tr>`).join('')
       || `<tr class="empty"><td colspan="5">${filter ? 'No items match that number.' : 'No items. Use Add item to add one.'}</td></tr>`;
     const selN = rows.filter(r => r.sel).length, visSel = vis.filter(v => v.r.sel).length, all = $('#id-all', bd);
@@ -1624,7 +1659,7 @@ function openAdviseDialog(kind, rows) {
             <label class="check radio"><input type="radio" name="aw-transport" value="Email"><span class="box"></span>Email</label>
           </fieldset>
         </div>
-        <div class="field always-float required"><textarea class="ctl" id="aw-message" rows="9"></textarea><label for="aw-message">Message<span class="req-star">*</span></label><div class="helper" id="aw-count"></div></div>
+        <div class="field always-float required"><textarea class="ctl" id="aw-message" rows="9" placeholder="Write the message to send to each customer"></textarea><label for="aw-message">Message<span class="req-star">*</span></label><div class="helper" id="aw-count"></div></div>
       </section>
 
       <section class="aw-section aw-system" id="aw-windows">
