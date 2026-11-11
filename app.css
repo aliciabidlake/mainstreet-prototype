@@ -645,3 +645,141 @@ table.grid { width: 100%; border-collapse: separate; border-spacing: 0; font: va
 .drivers-grid thead th { border-top: 0; border-bottom: 0; box-shadow: none; }
 /* Dialog with no footer (informational): give the body its bottom padding */
 .dialog-body:last-child { padding-bottom: 24px; }
+
+/* =========== Side sheet — new style (Figma 4628:193387, not yet in Supernova) ===========
+   Grey body like the page, white header/footer bars with soft shadows, containers + dividers. */
+.sheet { width: min(520px, 100vw); background: var(--background-container-default); /* #FAFAFA background/surface/grey */
+  box-shadow: 0 4px 5px rgba(0,0,0,.20), 0 7px 10px rgba(0,0,0,.14), 0 2px 16px rgba(0,0,0,.12); }
+.sheet-head { position: relative; z-index: 1; min-height: 72px; padding: 16px 16px 16px 24px; border-bottom: 0;
+  background: var(--background-paper); box-shadow: 0 -1px 10px rgba(0,0,0,.20); }
+.sheet-title { font: var(--typography-h3); letter-spacing: -0.02em; }
+.sheet-body { padding: 12px 24px 20px; gap: 16px; }
+.sheet-section h3 { margin: 0 0 8px; font: 500 16px/24px var(--font-family); }
+.sheet-hint { margin: 6px 0 0; font: var(--typography-body2); color: var(--text-secondary); }
+.sheet-hint-top { margin: -2px 0 8px; }
+.sheet-card { background: var(--background-paper); border: 1px solid var(--color-divider); border-radius: var(--radius-sm); padding: 12px 16px; }
+.sheet-card .check-list { margin-left: -9px; }
+.sheet-card-table { padding: 0; overflow: hidden; border-color: var(--components-table-border); border-radius: var(--radius-md); }
+.sheet-card-table .attr-grid { border: 0; border-radius: 0; }
+.sheet-divider { border: 0; height: 1px; margin: 4px 0; background: var(--color-divider); }
+.field.on-grey { --field-surface: var(--background-container-default); }
+.sheet-foot { position: relative; z-index: 1; min-height: 60px; padding: 12px 16px; border-top: 0;
+  background: var(--background-paper); box-shadow: 0 -1px 4px rgba(0,0,0,.20); }
+.sheet-divider { flex: none; }
+
+/* Filters side sheet title: h4 (20/28 Medium) */
+.sheet-title { font: var(--typography-h4); letter-spacing: normal; }
+.sheet-head { min-height: 60px; height: 60px; padding-top: 10px; padding-bottom: 10px; }
+
+/* =========== Zone summary grid: cell-level selection ===========
+   Each number is the clickable thing (Pickups, Deliveries, or Totals = both), not the whole zone column. */
+.figma-screen .zone-grid th, .figma-screen .zone-grid td { border-right: 1px solid var(--components-table-border); min-width: 104px; }
+.figma-screen .zone-grid th:last-child, .figma-screen .zone-grid td:last-child { border-right: 0; }
+.figma-screen .zone-grid th:first-child, .figma-screen .zone-grid td:first-child { border-right: 1px solid var(--components-table-border-strong); }
+.figma-screen .zone-grid .zone-sel { box-shadow: none; }                 /* no column outline any more */
+.figma-screen .zone-grid thead th.zone-sel { color: var(--primary-main); } /* header text still turns blue */
+/* Deliveries row uses the zebra colour (edge case: striped although ≤5 rows) */
+.figma-screen .zone-grid tbody tr:nth-child(2) td { background: var(--background-table-zebra); }
+.figma-screen .zone-grid tbody tr:hover td { background: inherit; }
+.figma-screen .zone-grid tbody tr:nth-child(1):hover td { background: var(--background-table-default); }
+.figma-screen .zone-grid tbody tr:nth-child(2):hover td { background: var(--background-table-zebra); }
+.figma-screen .zone-grid tbody tr.totals:hover td { background: #e4e4e4; }
+/* Hover, selected and focus sit on the single cell */
+.figma-screen .zone-grid td.zone-cell { cursor: pointer; }
+.figma-screen .zone-grid tbody tr td.zone-cell:hover { background: var(--background-table-hover); }
+.figma-screen .zone-grid tbody tr td.zone-cell.cell-sel { background: var(--background-table-selected); box-shadow: inset 0 0 0 2px var(--primary-main); color: var(--primary-main); font-weight: 600; }
+.figma-screen .zone-grid td.zone-cell:focus { outline: none; }
+.figma-screen .zone-grid td.zone-cell:focus-visible { box-shadow: inset 0 0 0 2px var(--primary-main); }
+
+/* Horizontal scroll inside the container with an always-visible, draggable scrollbar */
+.grid-wrap:has(> .zone-grid) { overflow-x: scroll; overflow-y: hidden; scrollbar-width: auto; scrollbar-color: #bdbdbd #f5f5f5; }
+.grid-wrap:has(> .zone-grid)::-webkit-scrollbar { height: 12px; }
+.grid-wrap:has(> .zone-grid)::-webkit-scrollbar-track { background: #f5f5f5; border-top: 1px solid var(--components-table-border); }
+.grid-wrap:has(> .zone-grid)::-webkit-scrollbar-thumb { background: #bdbdbd; border-radius: 6px; border: 2px solid #f5f5f5; }
+.grid-wrap:has(> .zone-grid)::-webkit-scrollbar-thumb:hover { background: #9e9e9e; }
+
+/* Inline warning in the dispatch footer when allocating with no jobs ticked (replaces the error dialog) */
+.alloc-summary.warn { gap: 6px; padding: 4px 12px 4px 8px; border-radius: 9999px; color: var(--text-primary);
+  background: var(--components-alert-warning-background); border: 1px solid var(--components-alert-warning-border); }
+.alloc-summary.warn b { font-weight: 500; }
+.alloc-summary .warn-icon { width: 20px; height: 20px; font-size: 20px; color: var(--warning-main); }
+/* Briefly ring the select-all checkbox to show where to go */
+.check.nudge .box { animation: nudge 1.2s var(--easing-ease-in-out, ease-in-out) 2; }
+@keyframes nudge { 0%, 100% { box-shadow: 0 0 0 0 rgba(239,108,0,0); } 50% { box-shadow: 0 0 0 6px rgba(239,108,0,.35); background: rgba(239,108,0,.12); } }
+@media (prefers-reduced-motion: reduce) { .check.nudge .box { animation: none; box-shadow: 0 0 0 3px rgba(239,108,0,.5); } }
+
+/* Close (X) icons: same glyph size in dialogs and side sheets */
+.dialog-title .icon-btn > i, .sheet-head .icon-btn > i { font-size: 20px; line-height: 1; }
+
+/* Print options dialogs (Delivery receipt / Consignment note / Shipment label) */
+.pd-sub { margin: -8px 0 8px; font: var(--typography-body2); color: var(--text-secondary); }
+.pd-tabs { margin: 0 -24px 16px; padding: 0 24px; border-bottom: 1px solid var(--color-divider); }
+.pd-tabs .tab { min-width: 0; padding: 12px 16px; }
+.pd-tabs .tab[aria-disabled="true"] { color: var(--text-disabled); cursor: default; background: none; }
+.pd-panel { display: flex; flex-direction: column; gap: var(--dimension-field-to-field-vertical); color: var(--text-primary); }
+.pd-panel[hidden] { display: none; }
+.pd-row { display: grid; grid-template-columns: 120px 1fr; gap: var(--dimension-label-field-to-field); }
+.pd-checks { display: flex; flex-direction: column; margin: -4px 0 -4px -9px; }
+.pd-checks:empty { display: none; }
+.pd-default { padding-top: 8px; margin-top: 4px; border-top: 1px solid var(--color-divider); }
+.field > textarea.ctl { min-height: 96px; resize: vertical; line-height: 20px; }
+.field.always-float > textarea.ctl ~ label { top: 0; }
+.dialog .field .helper { color: var(--text-secondary); }
+.dialog .field.error .helper { color: var(--error-main); }
+
+/* Required bar sits inside the input only — never extends over helper/error text below */
+.field.required::before { bottom: auto; height: var(--input-min-height); }
+
+/* Heading letter spacing — from the ONE DS Figma text styles (Supernova tokens don't carry tracking):
+   h1 −2% · h3 −2% · h6 −1% · subtitle1 −1% · subtitle2 −0.5%. h2/h4/h5 not used in the Figma frames; h2 follows h1/h3,
+   h4/h5 follow h6 (−1%) until confirmed. */
+.page-title, .figma-screen .page-title { letter-spacing: -0.02em; }          /* h3 */
+.dialog-title, .sheet-title { letter-spacing: -0.01em; }                     /* h4 (assumed) */
+.card-title, .figma-screen .card-title, .sheet-section h3, .not-built h1 { letter-spacing: -0.01em; } /* h6 / 16 Medium */
+.leg-top, .cust-block .name, .attr-label, .addr-grid .sec-label, .bulk-bar .count { letter-spacing: -0.005em; } /* subtitle2 */
+
+/* Filters button: dot while edits in the side sheet haven't been applied (ONE DS Badge "dot", warning = pending) */
+#btn-filters { position: relative; }
+#btn-filters.has-pending::after { content: ""; position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; border-radius: 50%;
+  background: var(--warning-main); box-shadow: 0 0 0 2px var(--background-paper); }
+
+/* =========== Journey tracker — matched to Figma "Journey Tracker" instances ===========
+   403×103 legs, 24px tip/notch, legs overlap by 10px; 33px header strip in a deeper tint;
+   text inset 35px; title 14 Regular (−0.5%); lines 13 Regular, text/secondary, 18px + 2px gap. */
+.legs { gap: 0; filter: drop-shadow(0 0 0.6px rgba(0,0,0,.45)); margin-bottom: var(--dimension-between-cards-groups); }
+.leg {
+  --tint: #e4e4e4; --body: #fafafa;
+  flex: 1 0 300px; min-height: 103px; margin-left: -10px; padding: 6px 32px 6px 35px;
+  background: linear-gradient(var(--tint) 0 33px, var(--body) 33px);
+  clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 50%, calc(100% - 24px) 100%, 0 100%, 24px 50%);
+  color: var(--text-secondary); font: var(--typography-body2); border-radius: 0;
+}
+.leg:first-child { margin-left: 0; padding-left: 35px; border-radius: 0;
+  clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 50%, calc(100% - 24px) 100%, 0 100%); }
+.leg.complete { --tint: #dbeed7; --body: #efffeb; }
+.leg.progress-leg { --tint: #fff3c7; --body: #fffae9; }
+.leg:hover { filter: brightness(.98); }
+.leg-top { height: 24px; margin: 0 0 6px; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  font: 400 14px/22px var(--font-family); letter-spacing: -0.005em; color: var(--text-primary); }
+.leg-line { font: 400 13px/18px var(--font-family); color: var(--text-secondary); text-transform: uppercase; margin-top: 2px; }
+.leg-top + .leg-line { margin-top: 0; }
+/* Status chip: 24px pill, tint fill, thin dark border, icon in a filled 18px circle, 10px tracked caps */
+.leg-chip { height: 24px; padding: 0 10px 0 3px; gap: 6px; border: 0.75px solid; border-radius: 100px; flex: none;
+  font: 400 10px/1 var(--font-family); letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-primary); }
+.leg-chip .mi { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; font-size: 13px; }
+.leg-chip.complete { background: #dbeed7; border-color: #2e6200; color: var(--text-primary); }
+.leg-chip.complete .mi { background: #2e6200; color: #dbeed7; }
+.leg-chip.inprogress { background: #fff3c7; border-color: #5c4300; color: var(--text-primary); }
+.leg-chip.inprogress .mi { background: #5c4300; color: #fff3c7; }
+.leg-chip.upcoming { background: #e4e4e4; border-color: #515151; color: var(--text-primary); }
+.leg-chip.upcoming .mi { background: #515151; color: #f0f0f0; }
+.leg, .leg.complete, .leg.progress-leg { background: linear-gradient(var(--tint) 0 33px, var(--body) 33px); }
+
+/* Legs are painted by an SVG (stroke = divider, 4px corners) — turn off the CSS shape/fill */
+.legs { filter: none; }
+.leg, .leg.complete, .leg.progress-leg, .leg:first-child { background: none; clip-path: none; position: relative; isolation: isolate; }
+.leg > svg.leg-bg { position: absolute; inset: 0; z-index: -1; pointer-events: none; overflow: visible; }
+.leg:hover > svg.leg-bg { filter: brightness(.98); }
+.leg:hover { filter: none; }
+.leg:focus-visible { outline: none; }
+.leg:focus-visible > svg.leg-bg path:last-child { stroke: var(--primary-main); stroke-width: 2; }

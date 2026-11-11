@@ -61,15 +61,25 @@ $('#snackbar-close').addEventListener('click', hideSnack);
 /* =====================================================================
    Dialog (ONE DS Dialog: xs 444, radius 16, Ghost left / Primary right)
    ===================================================================== */
+// ONE DS Content Guidelines: headings use Title Case; a/an/the, and/but/or/nor, of/in/on/at/to/for/with/by stay lowercase
+// (unless first). Words that already contain capitals (codes, acronyms) are left alone; after a hyphen stays lowercase.
+const SMALL_WORDS = new Set(['a', 'an', 'the', 'and', 'but', 'or', 'nor', 'of', 'in', 'on', 'at', 'to', 'for', 'with', 'by']);
+function titleCase(str) {
+  return str.split(' ').map((w, i) => {
+    if (/[A-Z]/.test(w.slice(1)) || /^[^a-z]*$/.test(w)) return w;
+    if (i > 0 && SMALL_WORDS.has(w.toLowerCase())) return w.toLowerCase();
+    return w.charAt(0).toUpperCase() + w.slice(1);
+  }).join(' ');
+}
 function dialog({ title, body, confirm, destructive, cancel = 'Cancel', onConfirm, size = '', extra = '' }) {
   const bd = document.createElement('div');
   bd.className = 'backdrop';
   bd.innerHTML = `
     <div class="dialog ${size}" role="dialog" aria-modal="true" aria-labelledby="dlg-t">
-      <h2 class="dialog-title" id="dlg-t">${esc(title)}<button class="icon-btn sm" data-x aria-label="Close"><i class="fa-solid fa-xmark"></i></button></h2>
+      <h2 class="dialog-title" id="dlg-t">${esc(titleCase(title))}<button class="icon-btn sm" data-x aria-label="Close"><i class="fa-solid fa-xmark"></i></button></h2>
       <div class="dialog-body">${body}</div>
       ${cancel || confirm || extra ? `<div class="dialog-actions">
-        ${cancel ? `<button class="btn btn-text ${cancel === 'Cancel' ? 'btn-destructive' : ''}" data-x>${esc(cancel)}</button>` : ''}
+        ${cancel ? `<button class="btn btn-text" data-x>${esc(cancel)}</button>` : ''}
         <span class="spacer" style="flex:1"></span>${extra}
         ${confirm ? `<button class="btn btn-contained ${destructive ? 'btn-destructive' : ''}" data-ok>${esc(confirm)}</button>` : ''}
       </div>` : ''}
@@ -506,6 +516,8 @@ const ZONES = [
   ['Penrose', 12, 0], ['Pukekohe', 0, 2], ['CDB', 19, 0], ['Hancock', 43, 0], ['Prysmian', 6, 0],
 ].map(([name, p, d]) => ({ name, p, d }));
 let zone = 'Otahuhu';
+let allocWarn = false; // set to the action name when the user tries to allocate with no jobs ticked
+let zoneKind = 'p'; // which cell is selected: 'p' Pickups, 'd' Deliveries, 'all' Totals
 
 // Deterministic pseudo-random so each zone always shows the same jobs
 function rng(seed) { let s = 0; for (const c of seed) s = (s * 31 + c.charCodeAt(0)) >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
@@ -523,7 +535,7 @@ function jobsFor(z) {
     const pu = first ? PICKUPS[0] : PICKUPS[Math.floor(r() * PICKUPS.length)];
     const de = first ? DELIVERIES[0] : DELIVERIES[Math.floor(r() * DELIVERIES.length)];
     list.push({
-      id: z + i,
+      id: z + i, kind: i < zd.p ? 'p' : 'd',
       con: first ? 'S0006595' : 'S000' + (6500 + Math.floor(r() * 499)),
       carrier: first ? 'CAROTRANS' : CARRIERS[Math.floor(r() * CARRIERS.length)],
       pc: pu[0], addr: pu[1], service: 'LCL',
@@ -554,26 +566,37 @@ const DRIVERS = [
 const sel = new Set();
 let selDriver = null, jobsPage = 0, jobsPer = 5, drvPage = 0, drvPer = 5;
 
+function visibleJobs() {
+  const list = jobsFor(zone);
+  return zoneKind === 'all' ? list : list.filter(j => j.kind === zoneKind);
+}
+const KIND_LABEL = { p: 'Pickups', d: 'Deliveries', all: 'Pickups and deliveries' };
 function renderZones() {
   // Totals include zones scrolled off the Figma (233 / 16 / 249 at load)
   const T = ZONES.reduce((a, z) => ({ p: a.p + z.p, d: a.d + z.d }), { p: 79, d: 7 });
-  const cell = (v, z) => `<td class="${z ? 'zone-col' : ''} ${z === zone ? 'zone-sel' : ''}" ${z ? `data-zone="${esc(z)}"` : ''}>${v || ''}</td>`;
+  // Each number is its own clickable cell: Pickups, Deliveries, or Totals (= both)
+  const cell = (v, z, kind) => {
+    const on = z === zone && kind === zoneKind;
+    if (!v) return `<td class="zone-cell empty"></td>`;
+    return `<td class="zone-cell${on ? ' cell-sel' : ''}" data-zone="${esc(z)}" data-kind="${kind}" tabindex="0" role="button" aria-pressed="${on}" aria-label="${esc(z)}, ${KIND_LABEL[kind].toLowerCase()}: ${v}">${v}</td>`;
+  };
   $('#zone-grid').innerHTML = `
-    <thead><tr><th></th><th>Total</th>${ZONES.map(z => `<th class="zone-col ${z.name === zone ? 'zone-sel' : ''}" data-zone="${esc(z.name)}" title="${esc(z.name)}" tabindex="0" role="button" aria-pressed="${z.name === zone}">${esc(z.name.length > 9 ? z.name.slice(0, 8) + '…' : z.name)}</th>`).join('')}</tr></thead>
+    <thead><tr><th></th><th>Total</th>${ZONES.map(z => `<th class="${z.name === zone ? 'zone-sel' : ''}" title="${esc(z.name)}">${esc(z.name.length > 11 ? z.name.slice(0, 10) + '…' : z.name)}</th>`).join('')}</tr></thead>
     <tbody>
-      <tr><td>Pickups</td><td>${T.p}</td>${ZONES.map(z => cell(z.p, z.name)).join('')}</tr>
-      <tr><td>Deliveries</td><td>${T.d}</td>${ZONES.map(z => cell(z.d, z.name)).join('')}</tr>
-      <tr class="totals"><td>Totals</td><td>${T.p + T.d}</td>${ZONES.map(z => `<td>${z.p + z.d || ''}</td>`).join('')}</tr>
+      <tr><td>Pickups</td><td>${T.p}</td>${ZONES.map(z => cell(z.p, z.name, 'p')).join('')}</tr>
+      <tr><td>Deliveries</td><td>${T.d}</td>${ZONES.map(z => cell(z.d, z.name, 'd')).join('')}</tr>
+      <tr class="totals"><td>Totals</td><td>${T.p + T.d}</td>${ZONES.map(z => cell(z.p + z.d, z.name, 'all')).join('')}</tr>
     </tbody>`;
 }
-function selectZone(z) {
-  zone = z; sel.clear(); jobsPage = 0;
+function selectZone(z, kind = 'all') {
+  zone = z; zoneKind = kind; sel.clear(); jobsPage = 0;
   renderZones(); renderJobs(); renderDrivers();
-  $('#jobs-title').textContent = `Jobs - Not Dispatched (Pickups) for zone ${z.toUpperCase()}`;
+  $('#jobs-title').textContent = `Jobs - Not Dispatched (${KIND_LABEL[kind]}) for zone ${z.toUpperCase()}`;
   $('#drivers-title').textContent = `Cartage - for zone ${z.toUpperCase()}`;
+  const c = $(`#zone-grid [data-zone="${CSS.escape(z)}"][data-kind="${kind}"]`); if (c) c.focus({ preventScroll: true });
 }
-$('#zone-grid').addEventListener('click', e => { const c = e.target.closest('[data-zone]'); if (c) selectZone(c.dataset.zone); });
-$('#zone-grid').addEventListener('keydown', e => { const c = e.target.closest('[data-zone]'); if (c && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); selectZone(c.dataset.zone); } });
+$('#zone-grid').addEventListener('click', e => { const c = e.target.closest('[data-zone]'); if (c) selectZone(c.dataset.zone, c.dataset.kind); });
+$('#zone-grid').addEventListener('keydown', e => { const c = e.target.closest('[data-zone]'); if (c && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); selectZone(c.dataset.zone, c.dataset.kind); } });
 
 function pager(total, page, per, kind) {
   const start = total ? page * per + 1 : 0, end = Math.min(total, (page + 1) * per);
@@ -585,7 +608,7 @@ function pager(total, page, per, kind) {
 }
 
 function renderJobs() {
-  const all = jobsFor(zone), pageRows = all.slice(jobsPage * jobsPer, (jobsPage + 1) * jobsPer);
+  const all = visibleJobs(), pageRows = all.slice(jobsPage * jobsPer, (jobsPage + 1) * jobsPer);
   // One <tbody> per job so PUP + DEL rows hover, select and stripe as a single row
   const table = $('#jobs-table');
   $$('tbody', table).forEach(t => t.remove());
@@ -623,7 +646,12 @@ function renderJobs() {
   const ready = !!(sel.size && selDriver), drv = selDriver && DRIVERS.find(d => d.no === selDriver);
   const jobsTxt = sel.size ? `<b>${sel.size} job${sel.size > 1 ? 's' : ''}</b> · ${pcs} pieces · ${Math.round(m3 * 100) / 100} m3 · ${kg.toLocaleString('en-NZ')} kg` : 'No jobs selected';
   const drvTxt = drv ? `<b>${esc(drv.name)}</b> (${drv.no})` : 'no driver selected';
-  $('#alloc-summary').innerHTML = `${jobsTxt} <span class="i mi" aria-hidden="true">arrow_forward</span> ${drvTxt}`;
+  if (sel.size) allocWarn = false;
+  const sum = $('#alloc-summary');
+  sum.classList.toggle('warn', allocWarn);
+  sum.innerHTML = allocWarn
+    ? `<span class="i mi warn-icon" aria-hidden="true">warning_amber</span><b>Select at least one job to ${allocWarn}</b>`
+    : `${jobsTxt} <span class="i mi" aria-hidden="true">arrow_forward</span> ${drvTxt}`;
 }
 function renderDrivers() {
   const rows = DRIVERS.slice(drvPage * drvPer, (drvPage + 1) * drvPer);
@@ -655,14 +683,15 @@ $('#jobs-table').addEventListener('change', e => {
   renderJobs();
 });
 $('#jobs-all').addEventListener('change', e => {
-  jobsFor(zone).slice(jobsPage * jobsPer, (jobsPage + 1) * jobsPer).forEach(j => e.target.checked ? sel.add(j.id) : sel.delete(j.id));
+  visibleJobs().slice(jobsPage * jobsPer, (jobsPage + 1) * jobsPer).forEach(j => e.target.checked ? sel.add(j.id) : sel.delete(j.id));
   renderJobs();
 });
 $('#bulk-clear').addEventListener('click', () => { sel.clear(); renderJobs(); });
 $('#drivers-body').addEventListener('click', e => {
   if (e.target.closest('a')) return;
   const tr = e.target.closest('tr[data-driver]'); if (!tr) return;
-  selDriver = tr.dataset.driver; renderDrivers(); renderJobs();
+  // Clicking the selected driver again unselects it
+  selDriver = selDriver === tr.dataset.driver ? null : tr.dataset.driver; renderDrivers(); renderJobs();
 });
 document.addEventListener('change', e => {
   const per = e.target.dataset && e.target.dataset.per;
@@ -678,8 +707,110 @@ document.addEventListener('click', e => {
 // Bulk actions (Figma 4770:195664) — not built, but say how many jobs they'd act on
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-bulk]'); if (!b) return;
+  if (PRINT_DOCS[b.dataset.bulk]) return openPrintDialog(b.dataset.bulk);
   notBuilt(`${b.dataset.bulk} – ${sel.size} selected job${sel.size > 1 ? 's' : ''}`);
 });
+
+/* ---------------------------------------------------------------------
+   Print options dialogs (legacy "Print Options – …", Figma group 4800:188023)
+   Bulk actions: Delivery receipt · Consignment (consignment note) · Print labels (shipment label)
+   ONE DS: Dialog sm (600) · Tabs (Print / Email) · Forms (outlined fields, required bar)
+   · Modal Footer Button "Extended": Ghost Cancel left; Secondary Preview + Primary right.
+   Legacy → new: "Num of Copies" → Copies · "Use As Default" → "Save as my default for this document"
+   · "Document Copies: Print T&C" → "Include terms and conditions" · Label Email tab (greyed out) → disabled tab with tooltip.
+   --------------------------------------------------------------------- */
+const PRINTERS = ['BrotherLevel3', 'Otahuhu Dispatch – HP LaserJet M507', 'Otahuhu Office – Ricoh IM C3000'];
+const LABEL_PRINTERS = ["Dylan's Datamax M-4206 Label Printer", 'Otahuhu Dock 2 – Zebra ZT411', 'Otahuhu Dock 5 – Zebra ZT411'];
+const PRINT_DOCS = {
+  'Delivery receipt': { title: 'Delivery receipt', noun: 'delivery receipt', printers: PRINTERS, trays: ['1', '2', 'Manual feed'], dg: true, tc: false, email: true },
+  'Consignment': { title: 'Consignment note', noun: 'consignment note', printers: PRINTERS, trays: ['1', '2', 'Manual feed'], dg: true, tc: true, email: true },
+  'Print labels': { title: 'Shipment label', noun: 'shipment label', printers: LABEL_PRINTERS, trays: ['Default'], dg: false, tc: false, email: false },
+};
+const printDefaults = {}; // "Save as my default" per document type (session only)
+const SENDER_EMAIL = 'dispatch.otahuhu@mainfreight.co.nz';
+
+function openPrintDialog(key) {
+  const doc = PRINT_DOCS[key], d = printDefaults[key] || {};
+  const n = sel.size, jobsTxt = `${n} selected job${n > 1 ? 's' : ''}`;
+  const opt = (list, v) => list.map(x => `<option ${x === v ? 'selected' : ''}>${esc(x)}</option>`).join('');
+  const cb = (id, label, on) => `<label class="check"><input type="checkbox" id="${id}" ${on ? 'checked' : ''}><span class="box"></span>${label}</label>`;
+  const docOptions = pre => `
+    <div class="pd-checks">
+      ${doc.tc ? cb(pre + '-tc', 'Include terms and conditions', d.tc ?? true) : ''}
+      ${doc.dg ? cb(pre + '-dg', 'Include DG documents', d.dg ?? false) : ''}
+    </div>`;
+  const bd = dialog({
+    title: `Print ${doc.noun}${n > 1 ? 's' : ''}`, size: 'sm', confirm: 'Print', cancel: 'Cancel',
+    extra: '<button class="btn btn-outlined" data-preview>Preview</button>',
+    body: `
+      <p class="pd-sub">${jobsTxt}</p>
+      <div class="tabs pd-tabs" role="tablist" aria-label="Send by">
+        <button class="tab" role="tab" aria-selected="true" data-pd-tab="print" id="pd-tab-print" aria-controls="pd-print">Print</button>
+        <button class="tab" role="tab" aria-selected="false" data-pd-tab="email" id="pd-tab-email" aria-controls="pd-email" ${doc.email ? '' : 'aria-disabled="true" data-tip="Shipment labels can only be printed"'}>Email</button>
+      </div>
+
+      <div class="pd-panel" id="pd-print" role="tabpanel" aria-labelledby="pd-tab-print">
+        <div class="field select required filled"><select class="ctl" id="pd-printer">${opt(doc.printers, d.printer || doc.printers[0])}</select><label for="pd-printer">Printer<span class="req-star">*</span></label></div>
+        <div class="pd-row">
+          <div class="field filled"><input class="ctl num" type="number" id="pd-copies" min="1" max="99" value="${d.copies || 1}"><label for="pd-copies">Copies</label></div>
+          <div class="field select filled"><select class="ctl" id="pd-tray">${opt(doc.trays, d.tray || doc.trays[0])}</select><label for="pd-tray">Printer tray</label></div>
+        </div>
+        ${docOptions('pd')}
+        <div class="pd-checks pd-default">${cb('pd-default', 'Save as my default for this document', !!printDefaults[key])}</div>
+      </div>
+
+      <div class="pd-panel" id="pd-email" role="tabpanel" aria-labelledby="pd-tab-email" hidden>
+        <div class="field filled"><input class="ctl" type="email" id="pe-from" value="${SENDER_EMAIL}"><label for="pe-from">From</label></div>
+        <div class="field required"><input class="ctl" type="text" id="pe-to" autocomplete="off"><label for="pe-to">To<span class="req-star">*</span></label><div class="helper">Separate several addresses with commas</div></div>
+        <div class="field filled"><input class="ctl" id="pe-subject" value="${esc(doc.title)}${n > 1 ? 's' : ''} – ${jobsTxt}"><label for="pe-subject">Subject</label></div>
+        <div class="field always-float"><textarea class="ctl" id="pe-body" rows="4" placeholder="Add a note to include in the email"></textarea><label for="pe-body">Message</label></div>
+        <div class="pd-checks">${cb('pe-copy', 'Send me a copy', false)}</div>
+        ${docOptions('pe')}
+      </div>`,
+    onConfirm: bd => {
+      if (mode === 'print') {
+        const f = $('#pd-printer', bd).closest('.field');
+        if (!validateField(f)) return false;
+        const copies = Math.max(1, Math.min(99, parseInt($('#pd-copies', bd).value, 10) || 1));
+        const printer = $('#pd-printer', bd).value;
+        if ($('#pd-default', bd).checked) printDefaults[key] = { printer, tray: $('#pd-tray', bd).value, copies, dg: $('#pd-dg', bd)?.checked, tc: $('#pd-tc', bd)?.checked };
+        else delete printDefaults[key];
+        snack(`Printing ${n} ${doc.noun}${n > 1 ? 's' : ''} on ${printer}${copies > 1 ? ` (${copies} copies each)` : ''}`);
+      } else {
+        const f = $('#pe-to', bd).closest('.field'), to = $('#pe-to', bd).value.trim();
+        if (!to) { validateField(f); $('#pe-to', bd).focus(); return false; }
+        const bad = to.split(',').map(x => x.trim()).filter(Boolean).filter(x => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x));
+        if (bad.length) { setFieldError(f, `Check this address: ${bad[0]}`); $('#pe-to', bd).focus(); return false; }
+        const count = to.split(',').filter(x => x.trim()).length;
+        snack(`${doc.title}${n > 1 ? 's' : ''} emailed to ${count > 1 ? count + ' recipients' : to}`);
+      }
+    },
+  });
+
+  let mode = 'print';
+  const okBtn = $('[data-ok]', bd);
+  const setMode = m => {
+    mode = m;
+    $$('[data-pd-tab]', bd).forEach(t => t.setAttribute('aria-selected', String(t.dataset.pdTab === m)));
+    $('#pd-print', bd).hidden = m !== 'print';
+    $('#pd-email', bd).hidden = m !== 'email';
+    okBtn.textContent = m === 'print' ? 'Print' : 'Send email';
+    ($(m === 'print' ? '#pd-printer' : '#pe-to', bd)).focus();
+  };
+  $$('[data-pd-tab]', bd).forEach(t => t.addEventListener('click', () => {
+    if (t.getAttribute('aria-disabled') === 'true') return;
+    setMode(t.dataset.pdTab);
+  }));
+  $('.pd-tabs', bd).addEventListener('keydown', e => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    const tabs = $$('[data-pd-tab]:not([aria-disabled="true"])', bd);
+    const i = tabs.indexOf(document.activeElement); if (i < 0) return;
+    tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length].focus();
+  });
+  $('#pe-to', bd).addEventListener('input', e => { const f = e.target.closest('.field'); if (f.classList.contains('error')) setFieldError(f, ''); });
+  $('[data-preview]', bd).addEventListener('click', () => { bd.close(); notBuilt(`Preview – ${doc.title.toLowerCase()} (${jobsTxt})`); });
+  $$('.field', bd).forEach(syncFilled);
+}
 
 // Allocate selected jobs to the chosen driver (sticky footer split button)
 function allocate({ pre = false, accept = false, driverNo = selDriver } = {}) {
@@ -709,7 +840,11 @@ const ALLOC_COPY = {
 $$('[data-alloc]').forEach(b => b.addEventListener('click', () => {
   const a = b.dataset.alloc, c = ALLOC_COPY[a];
   if (!sel.size) {
-    dialog({ title: c.title, body: 'Select at least one job in the jobs grid first.', cancel: null });
+    allocWarn = c.verb.toLowerCase();
+    renderJobs();
+    const all = $('#jobs-all').closest('.check');
+    all.classList.remove('nudge'); void all.offsetWidth; all.classList.add('nudge');
+    $('#jobs-table').closest('.card').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     return;
   }
   const n = `${sel.size} job${sel.size > 1 ? 's' : ''}`;
@@ -827,7 +962,18 @@ function restoreDraft(draft) {
   $$('.field', sheet).forEach(syncFilled); syncLinehaul();
   sheetDirty = true;
 }
-function openSheet(draft) {
+// Unapplied edits survive closing the sheet (like the legacy screen, where nothing applies until Refresh).
+// They come back when the sheet reopens; the Filters button shows a dot while they're pending.
+let pendingDraft = null;
+function setPending(draft) {
+  pendingDraft = draft;
+  const b = $('#btn-filters');
+  b.classList.toggle('has-pending', !!draft);
+  b.toggleAttribute('data-tip', !!draft);
+  if (draft) b.setAttribute('data-tip', 'Filter changes not applied yet');
+  b.setAttribute('aria-label', (b.getAttribute('aria-label') || 'Filters').replace(/, changes not applied$/, '') + (draft ? ', changes not applied' : ''));
+}
+function openSheet(draft = pendingDraft) {
   buildSheet();
   sheetDirty = false;
   if (draft) restoreDraft(draft);
@@ -838,15 +984,13 @@ function openSheet(draft) {
 }
 function closeSheet({ discard = false, focusButton = true } = {}) {
   if (!sheet.classList.contains('open')) return;
-  // Closing without Apply discards edits; a snackbar offers to reopen them
-  // (ONE DS: reversible actions get a snackbar action, not a confirmation dialog)
-  const draft = discard && sheetDirty ? captureDraft() : null;
+  // Closing without Apply keeps the edits as a pending draft (no dialog, nothing lost)
+  if (discard && sheetDirty) setPending(captureDraft());
   sheet.classList.remove('open');
   sheetDirty = false;
   $('#btn-filters').setAttribute('aria-expanded', 'false');
   setTimeout(() => { if (!sheet.classList.contains('open')) sheet.hidden = true; }, 250);
   if (focusButton) $('#btn-filters').focus();
-  if (draft) snack('Filter changes not applied', { action: 'Reopen', onAction: () => openSheet(draft) });
 }
 $('#btn-filters').addEventListener('click', () => sheet.classList.contains('open') ? closeSheet({ discard: true }) : openSheet());
 sheet.addEventListener('click', e => { if (e.target.closest('[data-sheet-close]')) closeSheet({ discard: true }); });
@@ -877,7 +1021,7 @@ function applySheet({ quiet = false } = {}) {
   adv.scope = {}; $$('input[name="scope"]:checked', sheet).forEach(i => { adv.scope[i.value] = true; });
   HIDE_OPTS.forEach(o => { o.checked = !!$(`input[name="hide"][value="${CSS.escape(o.label)}"]`, sheet).checked; }); syncHide();
   adv.attrs = {}; ATTRS.forEach((k, i) => { const v = $(`input[name="attr-${i}"]:checked`, sheet).value; if (v) adv.attrs[k] = v; });
-  sheetDirty = false; closeSheet(); renderActiveFilters(); doRefresh();
+  sheetDirty = false; setPending(null); closeSheet(); renderActiveFilters(); doRefresh();
   const n = activeFilterList().length;
   if (!quiet) snack(n ? `${n} filter${n > 1 ? 's' : ''} applied` : 'Filters applied');
   return true;
@@ -887,6 +1031,7 @@ $('#sf-save').addEventListener('click', () => { if (applySheet({ quiet: true }))
 $('#sf-from').addEventListener('input', e => { const f = e.target.closest('.field'); f.classList.remove('error'); const h = $('.helper', f); if (h) h.remove(); });
 
 $('#flt-clear').addEventListener('click', () => {
+  setPending(null);
   $$('#dp-unallocated .filter-bar [data-default]').forEach(c => { c.value = c.dataset.default; syncFilled(c.closest('.field')); });
   adv = blankAdv(); HIDE_OPTS.forEach(o => { o.checked = HIDE_DEFAULT[o.label]; }); syncHide();
   renderActiveFilters();
@@ -908,6 +1053,7 @@ function captureState() {
   return st;
 }
 function applyState(st) {
+  setPending(null);
   Object.entries(BAR).forEach(([k, sel]) => { $(sel).value = st[k] ?? $(sel).dataset.default; syncFilled($(sel).closest('.field')); });
   HIDE_OPTS.forEach(o => { o.checked = st.hide && o.label in st.hide ? st.hide[o.label] : HIDE_DEFAULT[o.label]; }); syncHide();
   adv = Object.assign(blankAdv(), deepCopy(st.adv || {}));
@@ -1053,7 +1199,7 @@ function openManageDialog() {
         } },
       ]);
     }
-    chosen = id; render();
+    chosen = chosen === id ? null : id; render(); // click again to unselect
   });
   tbody.addEventListener('dblclick', e => { const tr = e.target.closest('tr[data-id]'); if (tr && !e.target.closest('button, input')) { chosen = +tr.dataset.id; $('[data-ok]', bd).click(); } });
   tbody.addEventListener('keydown', e => { if (e.target.matches('[data-rename]')) { if (e.key === 'Enter') { e.preventDefault(); finishRename(true); } if (e.key === 'Escape') { e.stopPropagation(); finishRename(false); } } });
@@ -1077,7 +1223,15 @@ function setRefresh(mins) {
 function refreshMenuItems() {
   return [{ header: 'Auto-refresh' }, ...[0, 1, 3, 5, 10].map(m => ({ label: m ? `Every ${m} min` : 'Off', selected: m === refreshMins, action: () => { setRefresh(m); snack(m ? `Auto-refresh every ${m} min` : 'Auto-refresh off'); } }))];
 }
-$('#btn-refresh').addEventListener('click', doRefresh);
+// Manual Refresh also applies pending filter edits (legacy habit: change filters, close, press Refresh).
+// Auto-refresh never does — it only reloads with the filters already applied.
+$('#btn-refresh').addEventListener('click', () => {
+  if (!pendingDraft) return doRefresh();
+  buildSheet(); restoreDraft(pendingDraft);
+  if (applySheet({ quiet: true })) { snack('Filter changes applied'); return; }
+  // Something in the pending edits needs fixing (e.g. dates): open the sheet so the error shows
+  openSheet(); setTimeout(() => applySheet(), 60);
+});
 setRefresh(3);
 
 renderZones(); renderJobs(); renderDrivers();
@@ -1100,6 +1254,45 @@ renderZones(); renderJobs(); renderDrivers();
     });
   }, { passive: true });
   bar.addEventListener('focusin', () => bar.classList.remove('nav-hidden'));
+})();
+
+/* =====================================================================
+   Journey tracker legs: drawn as SVG so the arrow can have a 1px divider stroke
+   and 4px rounded corners (CSS clip-path can do neither). Redrawn on resize.
+   ===================================================================== */
+(() => {
+  const TIP = 24, HEADER = 33, R = 4, NS = 'http://www.w3.org/2000/svg';
+  // Path through the points with each corner rounded by r (quadratic curve at each vertex)
+  const rounded = (pts, r) => {
+    const n = pts.length; let d = '';
+    for (let i = 0; i < n; i++) {
+      const [px, py] = pts[(i - 1 + n) % n], [x, y] = pts[i], [nx, ny] = pts[(i + 1) % n];
+      const l1 = Math.hypot(x - px, y - py), l2 = Math.hypot(nx - x, ny - y);
+      const a = Math.min(r, l1 / 2), b = Math.min(r, l2 / 2);
+      const sx = x - (x - px) / l1 * a, sy = y - (y - py) / l1 * a, ex = x + (nx - x) / l2 * b, ey = y + (ny - y) / l2 * b;
+      d += `${i ? 'L' : 'M'}${sx.toFixed(2)},${sy.toFixed(2)} Q${x},${y} ${ex.toFixed(2)},${ey.toFixed(2)} `;
+    }
+    return d + 'Z';
+  };
+  let uid = 0;
+  function draw(leg) {
+    const w = leg.offsetWidth, h = leg.offsetHeight; if (!w || !h) return;
+    const first = leg === leg.parentElement.firstElementChild, o = 0.5; // half-pixel inset keeps the 1px stroke crisp
+    const pts = [[o, o], [w - TIP, o], [w - o, h / 2], [w - TIP, h - o], [o, h - o]];
+    if (!first) pts.push([TIP, h / 2]);
+    const cs = getComputedStyle(leg), tint = cs.getPropertyValue('--tint').trim(), body = cs.getPropertyValue('--body').trim();
+    const id = leg.dataset.clip || (leg.dataset.clip = 'leg-clip-' + (++uid)), d = rounded(pts, R);
+    let svg = leg.querySelector(':scope > svg.leg-bg');
+    if (!svg) { svg = document.createElementNS(NS, 'svg'); svg.setAttribute('class', 'leg-bg'); svg.setAttribute('aria-hidden', 'true'); leg.prepend(svg); }
+    svg.setAttribute('width', w); svg.setAttribute('height', h); svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    svg.innerHTML = `<defs><clipPath id="${id}"><path d="${d}"/></clipPath></defs>
+      <path d="${d}" fill="${body}"/>
+      <rect x="0" y="0" width="${w}" height="${HEADER}" fill="${tint}" clip-path="url(#${id})"/>
+      <path d="${d}" fill="none" stroke="rgba(0,0,0,0.12)" stroke-width="1"/>`;
+  }
+  const legs = $$('.legs .leg');
+  const ro = new ResizeObserver(entries => entries.forEach(e => draw(e.target)));
+  legs.forEach(l => ro.observe(l));
 })();
 
 /* ===================================================================== */

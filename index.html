@@ -9,8 +9,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Odor+Mean+Chey&family=Material+Icons&display=swap" rel="stylesheet">
 <!-- ONE DS icon set is Font Awesome Pro Sharp (paid kit). FA Free 6 is used as a stand-in for non-Figma UI. -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<link rel="stylesheet" href="one-ds-tokens.css?v=15">
-<link rel="stylesheet" href="app.css?v=15">
+<link rel="stylesheet" href="one-ds-tokens.css?v=31">
+<link rel="stylesheet" href="app.css?v=31">
 </head>
 <body>
 
@@ -57,23 +57,23 @@
   <!-- Journey tracker -->
   <div class="legs" role="list" aria-label="Linehaul journey">
     <button class="leg complete" role="listitem" data-notbuilt="Linehaul leg MAN01 – LDS02">
-      <div class="leg-top">Linehaul - MAN01 - LDS02 <span class="leg-chip complete"><span class="mi">check_circle</span>Complete</span></div>
+      <div class="leg-top">Linehaul - MAN01 - LDS02 <span class="leg-chip complete"><span class="mi">check</span>Complete</span></div>
       <div class="leg-line">Outturned: 09 Nov 06:45 (A)</div><div class="leg-line">ETA: 09 Nov 06:30 (A)</div><div class="leg-line">Carrier: 50812 - Pennine Freight</div>
     </button>
     <button class="leg progress-leg" role="listitem" data-notbuilt="Linehaul leg LDS02 – NCL01">
-      <div class="leg-top">Linehaul - LDS02 - NCL01 <span class="leg-chip inprogress"><span class="mi">timelapse</span>In progress</span></div>
+      <div class="leg-top">Linehaul - LDS02 - NCL01 <span class="leg-chip inprogress"><span class="mi">moving</span>In progress</span></div>
       <div class="leg-line">Outturned: Awaiting arrival</div><div class="leg-line">ETA: 09 Nov 10:15 (E)</div><div class="leg-line">Carrier: 62304 - Northern Haul</div>
     </button>
     <button class="leg" role="listitem" data-notbuilt="Linehaul leg NCL01 – EDB03">
-      <div class="leg-top">Linehaul - NCL01 - EDB03 <span class="leg-chip upcoming"><span class="mi">schedule</span>Upcoming</span></div>
+      <div class="leg-top">Linehaul - NCL01 - EDB03 <span class="leg-chip upcoming"><span class="mi">access_time_filled</span>Upcoming</span></div>
       <div class="leg-line">Outturned: Not yet dispatched</div><div class="leg-line">ETA: 09 Nov 14:30 (E)</div><div class="leg-line">Carrier: 71056 - Border Logistics</div>
     </button>
     <button class="leg" role="listitem" data-notbuilt="Linehaul leg EDB03 – DND01">
-      <div class="leg-top">Linehaul - EDB03 - DND01 <span class="leg-chip upcoming"><span class="mi">schedule</span>Upcoming</span></div>
+      <div class="leg-top">Linehaul - EDB03 - DND01 <span class="leg-chip upcoming"><span class="mi">access_time_filled</span>Upcoming</span></div>
       <div class="leg-line">Outturned: Not yet dispatched</div><div class="leg-line">ETA: 09 Nov 18:00 (E)</div><div class="leg-line">Carrier: 84219 - Tay Transport</div>
     </button>
     <button class="leg" role="listitem" data-notbuilt="Linehaul leg DND01 – ABZ02">
-      <div class="leg-top">Linehaul - DND01 - ABZ02 <span class="leg-chip upcoming"><span class="mi">schedule</span>Upcoming</span></div>
+      <div class="leg-top">Linehaul - DND01 - ABZ02 <span class="leg-chip upcoming"><span class="mi">access_time_filled</span>Upcoming</span></div>
       <div class="leg-line">Outturned: Not yet dispatched</div><div class="leg-line">ETA: 09 Nov 21:15 (E)</div><div class="leg-line">Carrier: 93670 - Granite Freight</div>
     </button>
   </div>
@@ -344,7 +344,7 @@
       <div class="field"><input class="ctl" id="flt-lh" data-default=""><label for="flt-lh">LH Jobs</label></div>
       <div class="field select filled" style="width:220px"><button type="button" class="ctl" id="flt-hide" data-menu="hide-menu" style="text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Unmanifested, Complete, On hold</button><label for="flt-hide">Hide</label></div>
       <button class="btn btn-outlined sm" id="btn-filters" aria-haspopup="dialog" aria-expanded="false" aria-controls="filter-sheet">Filters<span class="btn-badge" id="filter-count" hidden></span></button>
-      <button class="btn btn-text sm destructive" id="flt-clear">Clear</button>
+      <button class="btn btn-text sm" id="flt-clear">Clear</button>
       <!-- ONE DS DataGrid/Filtering: "Active filters are always shown" -->
       <div class="active-filters" id="active-filters" aria-label="Active filters" hidden></div>
     </section>
@@ -406,20 +406,24 @@
        ONE DS: Side Sheet (Drawer from the right, no backdrop so the grid stays usable),
        Side Sheet Footer (Ghost left; Secondary + Primary right), Forms, Checkbox, Radio, Date Field. -->
   <aside class="sheet" id="filter-sheet" role="dialog" aria-modal="false" aria-labelledby="filter-sheet-title" hidden>
+    <!-- Side sheet style from Figma 4628:193387 ("Document Uploads - Hybrid"): white header and footer with shadows,
+         grey (#FAFAFA) body, content grouped into containers and separated by dividers like a normal page -->
     <header class="sheet-head">
       <h2 class="sheet-title" id="filter-sheet-title">Filters</h2>
       <button class="icon-btn sm" data-sheet-close aria-label="Close filters" data-tip="Close"><i class="fa-solid fa-xmark"></i></button>
     </header>
     <div class="sheet-body">
       <section class="sheet-section">
-        <h3>Saved filters</h3>
-        <div class="field select saved-field" id="saved-field"><button type="button" class="ctl" id="flt-saved" data-menu="saved-filters" aria-haspopup="menu" aria-expanded="false"></button><label for="flt-saved">Saved filter</label></div>
-        <p class="sheet-hint" style="margin:6px 0 0">Choosing one applies it straight away. Use <b>Save filter</b> below to save what you've set up.</p>
+        <h3>Saved Filters</h3>
+        <div class="field select saved-field on-grey" id="saved-field"><button type="button" class="ctl" id="flt-saved" data-menu="saved-filters" aria-haspopup="menu" aria-expanded="false"></button><label for="flt-saved">Saved filter</label></div>
+        <p class="sheet-hint">Choosing one applies it straight away. Use <b>Save filter</b> below to save what you've set up.</p>
       </section>
+
+      <hr class="sheet-divider">
 
       <section class="sheet-section">
         <h3>Dates</h3>
-        <div class="sheet-grid">
+        <div class="sheet-card sheet-grid">
           <div class="field always-float"><input class="ctl" type="date" id="sf-from"><label for="sf-from">Date from</label></div>
           <div class="field always-float required"><input class="ctl" type="date" id="sf-to"><label for="sf-to">Date to<span class="req-star">*</span></label></div>
         </div>
@@ -427,33 +431,35 @@
 
       <section class="sheet-section">
         <h3>Linehaul</h3>
-        <div class="sheet-grid">
+        <div class="sheet-card sheet-grid">
           <div class="field select"><select class="ctl" id="sf-linehaul"><option value=""></option><option>AKL01 → HLZ02</option><option>AKL01 → WLG01</option><option>CHC02 → AKL01</option><option>DUN03 → AKL01</option></select><label for="sf-linehaul">Linehaul</label></div>
           <div class="field always-float disabled" id="sf-lh-time-field"><input class="ctl" type="time" id="sf-lh-time" disabled><label for="sf-lh-time">Linehaul arrival time</label><div class="helper">Choose a linehaul first</div></div>
         </div>
       </section>
 
       <section class="sheet-section">
-        <h3>Show only</h3>
-        <div class="check-list" id="sf-scope"></div>
+        <h3>Show Only</h3>
+        <div class="sheet-card"><div class="check-list" id="sf-scope"></div></div>
       </section>
 
       <section class="sheet-section">
-        <h3>Hide jobs that are</h3>
-        <div class="check-list" id="sf-hide"></div>
+        <h3>Hide Jobs</h3>
+        <div class="sheet-card"><div class="check-list" id="sf-hide"></div></div>
       </section>
 
       <section class="sheet-section">
-        <h3>Consignment attributes</h3>
-        <p class="sheet-hint">Show only consignments with an attribute, or hide them.</p>
-        <table class="grid attr-grid">
-          <thead><tr><th>Attribute</th><th class="center">Any</th><th class="center">Show only</th><th class="center">Hide</th></tr></thead>
-          <tbody id="sf-attrs"></tbody>
-        </table>
+        <h3>Consignment Attributes</h3>
+        <p class="sheet-hint sheet-hint-top">Show only consignments with an attribute, or hide them.</p>
+        <div class="sheet-card sheet-card-table">
+          <table class="grid attr-grid">
+            <thead><tr><th>Attribute</th><th class="center">Any</th><th class="center">Show only</th><th class="center">Hide</th></tr></thead>
+            <tbody id="sf-attrs"></tbody>
+          </table>
+        </div>
       </section>
     </div>
     <footer class="sheet-foot">
-      <button class="btn btn-text btn-destructive" id="sf-clear">Clear all</button>
+      <button class="btn btn-text" id="sf-clear">Clear all</button>
       <span class="spacer"></span>
       <button class="btn btn-outlined" id="sf-save">Save filter</button>
       <button class="btn btn-contained" id="sf-apply">Apply</button>
@@ -499,6 +505,6 @@
 </div>
 <div class="tooltip" id="tooltip" role="tooltip"></div>
 
-<script src="app.js?v=15"></script>
+<script src="app.js?v=31"></script>
 </body>
 </html>
