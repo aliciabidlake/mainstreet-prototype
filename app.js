@@ -8,13 +8,13 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 /* =====================================================================
    Routing  (#/consignment, #/dispatch, #/not-built?what=…)
    ===================================================================== */
-const screens = { consignment: '#screen-consignment', dispatch: '#screen-dispatch', 'not-built': '#screen-notbuilt' };
+const screens = { welcome: '#screen-welcome', consignment: '#screen-consignment', dispatch: '#screen-dispatch', 'not-built': '#screen-notbuilt' };
 let lastRealScreen = 'dispatch';
 
 function route() {
-  const raw = location.hash.replace(/^#\/?/, '') || 'dispatch';
+  const raw = location.hash.replace(/^#\/?/, '') || 'welcome';
   const [name, query] = raw.split('?');
-  const key = screens[name] ? name : 'dispatch';
+  const key = screens[name] ? name : 'welcome';
   Object.entries(screens).forEach(([k, sel]) => { $(sel).hidden = k !== key; });
   closeMenu();
   if (key === 'not-built') {
@@ -23,10 +23,11 @@ function route() {
     document.title = 'Not built · Mainstreet Prototype';
   } else {
     lastRealScreen = key;
-    document.title = (key === 'consignment' ? 'Consignment Edit' : 'Transport Dispatch') + ' · Mainstreet Prototype';
+    document.title = key === 'welcome' ? 'Mainstreet Prototype' : (key === 'consignment' ? 'Consignment Edit' : 'Transport Dispatch') + ' · Mainstreet Prototype';
   }
   $$('.nav-btn').forEach(b => b.classList.toggle('current', false));
   window.scrollTo(0, 0);
+  $$('#proto-switch [data-screen]').forEach(a => a.setAttribute('aria-current', a.dataset.screen === key ? 'page' : 'false'));
 }
 window.addEventListener('hashchange', route);
 
@@ -160,7 +161,7 @@ function closeMenu() {
   if (openMenuAnchor) openMenuAnchor.setAttribute('aria-expanded', 'false');
   openMenuEl = openMenuAnchor = null;
 }
-function openMenu(anchor, items, { className = '', keepOpen = false, minWidth } = {}) {
+function openMenu(anchor, items, { className = '', keepOpen = false, minWidth, focusFirst = true } = {}) {
   closeMenu();
   const ul = document.createElement('div');
   ul.className = 'menu ' + className;
@@ -196,7 +197,7 @@ function openMenu(anchor, items, { className = '', keepOpen = false, minWidth } 
   ul.style.left = Math.max(8, left) + 'px'; ul.style.top = top + 'px';
   anchor.setAttribute('aria-expanded', 'true');
   openMenuEl = ul; openMenuAnchor = anchor;
-  const first = $('.menu-item:not(:disabled)', ul); first && first.focus();
+  const first = $('.menu-item:not(:disabled)', ul); if (focusFirst && first) first.focus();
   ul.addEventListener('keydown', e => {
     const list = $$('.menu-item:not(:disabled)', ul), idx = list.indexOf(document.activeElement);
     if (e.key === 'ArrowDown') { e.preventDefault(); list[(idx + 1) % list.length].focus(); }
@@ -215,7 +216,7 @@ document.addEventListener('click', e => {
   const menuBtn = e.target.closest('[data-menu]');
   if (menuBtn) {
     const key = menuBtn.getAttribute('data-menu');
-    if (openMenuAnchor === menuBtn) { closeMenu(); return; }
+    if (openMenuAnchor === menuBtn) { if (menuBtn.dataset.hoverOpened) { delete menuBtn.dataset.hoverOpened; return; } closeMenu(); return; }
     if (key === 'refresh-interval') return openMenu(menuBtn, refreshMenuItems(), { minWidth: 140 });
     if (key === 'hide-menu') return openMenu(menuBtn, hideMenuItems(), { keepOpen: true });
     const isAction = key.startsWith('split-') || key === 'ce-more';
@@ -402,7 +403,7 @@ function renderItems() {
       <td class="td-edit"><input class="cell-input num" data-f="un" value="${esc(it.un)}" placeholder="e.g. 1203" aria-label="UN number, row ${i + 1}"></td>
       <td class="td-edit"><input class="cell-input" data-f="dg" value="${esc(it.dg)}" placeholder="e.g. 3" aria-label="DG class, row ${i + 1}"></td>
       <td class="td-edit"><input class="cell-input num" data-f="sub" value="${esc(it.sub)}" placeholder="e.g. 6.1" aria-label="Sub risk, row ${i + 1}"></td>
-      <td class="col-actions"><button class="icon-btn sm" data-item-details="${i}" data-tip="Item details" aria-label="Item details, row ${i + 1}"><span class="i mi">list_alt</span></button><button class="icon-btn sm" data-del-item="${i}" data-tip="Delete item" aria-label="Delete item ${i + 1}"><span class="i mi">delete</span></button></td>
+      <td class="col-actions"><button class="icon-btn sm" data-del-item="${i}" data-tip="Delete item" aria-label="Delete item ${i + 1}"><span class="i mi">delete</span></button></td>
     </tr>`).join('') || `<tr class="empty"><td colspan="14">No items. Use ADD to add one.</td></tr>`;
   renderTotals();
 }
@@ -441,9 +442,9 @@ $('#items-body').addEventListener('click', e => {
   snack('Item deleted', { action: 'Undo', onAction: () => { items.splice(i, 0, removed); renderItems(); } });
 });
 $('#add-item').addEventListener('click', () => {
-  items.push({ pieces: '', type: '', desc: '', kg: '', l: '', w: '', h: '', vol: '', charge: '', stack: false, un: '', dg: '', sub: '' });
+  items.unshift({ pieces: '', type: '', desc: '', kg: '', l: '', w: '', h: '', vol: '', charge: '', stack: false, un: '', dg: '', sub: '' });
   renderItems(); dirty = true;
-  const rows = $$('#items-body tr'); $('[data-f="desc"]', rows[rows.length - 1]).focus();
+  $('#items-body tr:first-child [data-f="pieces"]').focus();
 });
 renderItems();
 
@@ -969,6 +970,7 @@ $('#active-filters').addEventListener('click', e => {
 // Side sheet
 const sheet = $('#filter-sheet');
 function buildSheet() {
+  [['sf-group', 'flt-group'], ['sf-cgroup', 'flt-cgroup'], ['sf-applied', 'flt-applied'], ['sf-lh', 'flt-lh']].forEach(([a, b]) => { $('#' + a).value = $('#' + b).value; });
   $('#sf-from').value = adv.from;
   $('#sf-to').value = $('#flt-date').value;
   $('#sf-linehaul').value = adv.linehaul;
@@ -982,10 +984,35 @@ function buildSheet() {
 }
 function syncLinehaul() {
   const on = !!$('#sf-linehaul').value, f = $('#sf-lh-time-field');
-  f.classList.toggle('disabled', !on); $('#sf-lh-time').disabled = !on;
-  const h = $('.helper', f); if (h) h.hidden = on;
+  f.classList.toggle('disabled', !on); $('#sf-lh-time').disabled = !on; $('#sf-lh-time-btn').disabled = !on;
+  f.classList.remove('error');
+  const h = $('.helper', f); if (h) { h.textContent = 'Choose a linehaul first'; h.hidden = on; }
   if (!on) $('#sf-lh-time').value = '';
 }
+// Linehaul arrival time: 24-hour HH:MM (ONE DS Date Time Field: 24h). Type it, or pick from the clock menu.
+const normTime = v => {
+  const d = v.replace(/[^0-9]/g, '');
+  if (!d) return '';
+  const hh = d.length <= 2 ? d : d.slice(0, d.length - 2), mm = d.length <= 2 ? '00' : d.slice(-2);
+  const H = +hh, M = +mm;
+  return H <= 23 && M <= 59 && hh.length <= 2 ? `${String(H).padStart(2, '0')}:${String(M).padStart(2, '0')}` : null;
+};
+$('#sf-lh-time').addEventListener('blur', e => {
+  const f = $('#sf-lh-time-field'), h = $('.helper', f), v = normTime(e.target.value);
+  if (v === null) { f.classList.add('error'); h.hidden = false; h.textContent = 'Use 24-hour time, e.g. 14:30'; return; }
+  e.target.value = v; f.classList.remove('error'); h.hidden = true;
+});
+$('#sf-lh-time-btn').addEventListener('click', e => {
+  e.stopPropagation();
+  const btn = e.currentTarget, cur = $('#sf-lh-time').value;
+  if (openMenuAnchor === btn) return closeMenu();
+  const slots = [];
+  for (let m = 0; m < 24 * 60; m += 30) slots.push(`${String(m / 60 | 0).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`);
+  openMenu(btn, slots.map(t => ({ label: t, selected: t === cur, action: () => {
+    $('#sf-lh-time').value = t; $('#sf-lh-time-field').classList.remove('error'); $('.helper', $('#sf-lh-time-field')).hidden = true; sheetDirty = true; $('#sf-lh-time').focus();
+  } })), { minWidth: 120 });
+  const sel = $('.menu [aria-selected="true"]') || $$('.menu .menu-item')[16]; if (sel) sel.scrollIntoView({ block: 'center' });
+});
 $('#sf-linehaul').addEventListener('change', syncLinehaul);
 // Track unapplied edits so closing without Apply can offer to bring them back
 let sheetDirty = false;
@@ -1047,6 +1074,9 @@ $('#sf-clear').addEventListener('click', () => {
   adv = blankAdv(); HIDE_OPTS.forEach(o => { o.checked = HIDE_DEFAULT[o.label]; });
   $('#sf-to').value = $('#flt-date').dataset.default;
   const keepTo = $('#sf-to').value; buildSheet(); $('#sf-to').value = keepTo; syncFilled($('#sf-to').closest('.field'));
+  // Jobs fields back to their defaults too
+  [['sf-group', 'flt-group'], ['sf-cgroup', 'flt-cgroup'], ['sf-applied', 'flt-applied'], ['sf-lh', 'flt-lh']].forEach(([a, b]) => { $('#' + a).value = $('#' + b).dataset.default; syncFilled($('#' + a).closest('.field')); });
+  sheetDirty = true;
 });
 function applySheet({ quiet = false } = {}) {
   if (!validateField($('#sf-to').closest('.field'))) { $('#sf-to').focus(); return false; }
@@ -1057,6 +1087,7 @@ function applySheet({ quiet = false } = {}) {
     h.textContent = 'Date from must be on or before Date to'; $('#sf-from').focus(); return false;
   }
   adv.from = from;
+  [['sf-group', 'flt-group'], ['sf-cgroup', 'flt-cgroup'], ['sf-applied', 'flt-applied'], ['sf-lh', 'flt-lh']].forEach(([a, b]) => { $('#' + b).value = $('#' + a).value; syncFilled($('#' + b).closest('.field')); });
   $('#flt-date').value = to; syncFilled($('#flt-date').closest('.field'));
   adv.linehaul = $('#sf-linehaul').value; adv.lhTime = $('#sf-lh-time').value;
   adv.scope = {}; $$('input[name="scope"]:checked', sheet).forEach(i => { adv.scope[i.value] = true; });
@@ -1278,6 +1309,91 @@ setRefresh(3);
 renderZones(); renderJobs(); renderDrivers();
 
 /* =====================================================================
+   Prototype screen switcher — floating pill above the sticky footers
+   ===================================================================== */
+(() => {
+  const ps = $('#proto-switch');
+  const setCollapsed = c => {
+    ps.classList.toggle('collapsed', c);
+    try { localStorage.setItem('ps-collapsed', c ? '1' : '0'); } catch (e) { /* storage unavailable */ }
+  };
+  let saved = false; try { saved = localStorage.getItem('ps-collapsed') === '1'; } catch (e) { /* ignore */ }
+  setCollapsed(saved);
+  $$('[data-ps-toggle]', ps).forEach(b => b.addEventListener('click', () => { hideTip(); setCollapsed(!ps.classList.contains('collapsed')); }));
+  document.addEventListener('keydown', e => {
+    if (!e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.code === 'Digit0') { e.preventDefault(); go('welcome'); }
+    if (e.code === 'Digit1') { e.preventDefault(); go('dispatch'); }
+    if (e.code === 'Digit2') { e.preventDefault(); go('consignment'); }
+  });
+})();
+
+/* =====================================================================
+   Nav menus open on hover (click and keyboard still work). A short close delay lets the
+   pointer travel from the button into the menu without it snapping shut.
+   ===================================================================== */
+(() => {
+  let closeTimer = null, openTimer = null;
+  const isNavAnchor = () => openMenuAnchor && openMenuAnchor.classList.contains('nav-btn');
+  const menuItemsFor = btn => { const m = MENUS[btn.dataset.menu]; return (typeof m === 'function' ? m() : m) || []; };
+  $('.nav').addEventListener('mouseover', e => {
+    const btn = e.target.closest('.nav-btn'); if (!btn) return;
+    clearTimeout(closeTimer); clearTimeout(openTimer);
+    if (openMenuAnchor === btn) return;
+    openTimer = setTimeout(() => {   // tiny intent delay so sweeping across the bar doesn't flash every menu
+      closeMenu();
+      btn.dataset.hoverOpened = '1';
+      openMenu(btn, menuItemsFor(btn), { focusFirst: false });
+    }, isNavAnchor() ? 0 : 80);
+  });
+  document.addEventListener('mouseover', e => {
+    if (!isNavAnchor()) return;
+    const inside = (openMenuEl && openMenuEl.contains(e.target)) || openMenuAnchor.closest('.nav-item').contains(e.target);
+    clearTimeout(closeTimer);
+    if (!inside && !e.target.closest('.nav-btn')) closeTimer = setTimeout(() => { if (isNavAnchor()) { delete openMenuAnchor.dataset.hoverOpened; closeMenu(); } }, 220);
+  });
+  $('.nav').addEventListener('mouseleave', () => clearTimeout(openTimer));
+})();
+
+/* Header search: ⌘K / Ctrl+K focuses it; on narrow screens the field collapses to an icon that opens it */
+(() => {
+  const bar = $('.appbar'), input = $('#global-search-input');
+  const openSearch = () => { bar.classList.add('search-open'); input.focus(); };
+  $('#search-toggle').addEventListener('click', openSearch);
+  input.addEventListener('blur', () => setTimeout(() => { if (document.activeElement !== input) bar.classList.remove('search-open'); }, 100));
+  input.addEventListener('keydown', e => { if (e.key === 'Escape') { input.blur(); bar.classList.remove('search-open'); } });
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); bar.classList.remove('nav-hidden'); openSearch(); }
+  });
+})();
+
+/* =====================================================================
+   Responsive nav: items that don't fit collapse into "+N more"
+   (priority+ pattern; the More menu lists each hidden section with its items)
+   ===================================================================== */
+(() => {
+  const nav = $('.nav'), more = $('.nav-more', nav), label = $('#nav-more-label');
+  const items = $$('.nav-item:not(.nav-more)', nav);
+  const fit = () => {
+    items.forEach(i => { i.hidden = false; }); more.hidden = true;
+    if (nav.scrollWidth <= nav.clientWidth) return;
+    more.hidden = false;
+    let hiddenCount = 0;
+    for (let k = items.length - 1; k >= 0 && nav.scrollWidth > nav.clientWidth; k--) {
+      items[k].hidden = true; hiddenCount++;
+      label.textContent = `+${hiddenCount} more`;
+    }
+  };
+  MENUS['nav-more'] = () => items.filter(i => i.hidden).flatMap((i, n) => {
+    const btn = $('.nav-btn', i), key = btn.dataset.menu, title = btn.firstChild.textContent.trim();
+    return [...(n ? [{ divider: true }] : []), { header: title }, ...(typeof MENUS[key] === 'function' ? MENUS[key]() : MENUS[key])];
+  });
+  new ResizeObserver(fit).observe(document.querySelector('.appbar'));
+  if (document.fonts) document.fonts.ready.then(fit);
+  fit();
+})();
+
+/* =====================================================================
    App bar: hide when scrolling down, reveal when scrolling up
    ===================================================================== */
 (() => {
@@ -1288,7 +1404,8 @@ renderZones(); renderJobs(); renderDrivers();
     ticking = true;
     requestAnimationFrame(() => {
       const y = scrollY, delta = y - lastY;
-      if (y <= bar.offsetHeight) bar.classList.remove('nav-hidden');
+      // Below lg (1280) the nav is fixed and always visible while content scrolls under it
+      if (innerWidth < 1280 || y <= bar.offsetHeight) bar.classList.remove('nav-hidden');
       else if (delta > 4) { bar.classList.add('nav-hidden'); closeMenu(); }
       else if (delta < -4) bar.classList.remove('nav-hidden');
       lastY = y; ticking = false;
@@ -1306,21 +1423,103 @@ $$('.call-required').forEach(cb => cb.addEventListener('change', () => {
 }));
 $$('.call-details').forEach(b => b.setAttribute('data-tip', 'Tick Call required to add call details'));
 
-/* Date / time fields: calendar (or clock) icon button in the right-hand slot opens the picker */
-$$('.field > input.ctl[type="date"], .field > input.ctl[type="datetime-local"], .field > input.ctl[type="time"]').forEach(input => {
-  const field = input.parentElement, isTime = input.type === 'time';
-  field.classList.add('has-end', 'date-field');
+/* =====================================================================
+   Date / time fields — one consistent, 24-hour, day-first field everywhere
+   (ONE DS Date Field "DD/MM/YYYY", Date Time Field "DD/MM/YYYY HH:mm", ampm off).
+   Native date/time inputs follow the browser's locale (often 12-hour, AM/PM) and sit their text
+   off-centre, so each becomes a typed text field with a picker button in the right-hand slot.
+   The element's .value still reads/writes ISO (YYYY-MM-DD / YYYY-MM-DDTHH:MM / HH:MM),
+   so the rest of the prototype doesn't need to know.
+   ===================================================================== */
+const pad2 = n => String(n).padStart(2, '0');
+function parseTimeText(v) {
+  const d = (v || '').replace(/[^0-9]/g, '');
+  if (!d) return '';
+  if (d.length > 4) return null;
+  const hh = d.length <= 2 ? d : d.slice(0, d.length - 2), mm = d.length <= 2 ? '00' : d.slice(-2);
+  return +hh <= 23 && +mm <= 59 ? `${pad2(+hh)}:${pad2(+mm)}` : null;
+}
+function parseDateText(v) {
+  const t = (v || '').trim(); if (!t) return '';
+  let m = t.match(/^(\d{1,2})[\/.\- ](\d{1,2})[\/.\- ](\d{2}|\d{4})$/) || t.match(/^(\d{2})(\d{2})(\d{4}|\d{2})$/);
+  if (!m) return null;
+  let [, d, mo, y] = m; y = y.length === 2 ? '20' + y : y;
+  const dt = new Date(+y, +mo - 1, +d);
+  return dt.getFullYear() === +y && dt.getMonth() === +mo - 1 && dt.getDate() === +d ? `${y}-${pad2(+mo)}-${pad2(+d)}` : null;
+}
+const DT = {
+  date: { ph: 'DD/MM/YYYY', len: 10, err: 'Use DD/MM/YYYY',
+    toIso: t => parseDateText(t), toText: iso => { const [y, m, d] = iso.split('-'); return `${d}/${m}/${y}`; } },
+  'datetime-local': { ph: 'DD/MM/YYYY HH:MM', len: 16, err: 'Use DD/MM/YYYY HH:MM (24-hour)',
+    toIso: t => { const v = (t || '').trim(); if (!v) return ''; const [dp, tp] = v.split(/\s+/); const d = parseDateText(dp), tm = tp ? parseTimeText(tp) : '00:00'; return d && tm ? `${d}T${tm}` : null; },
+    toText: iso => { const [d, tm] = iso.split('T'); return DT.date.toText(d) + ' ' + (tm || '00:00').slice(0, 5); } },
+  time: { ph: 'HH:MM', len: 5, err: 'Use 24-hour time, e.g. 14:30', toIso: t => parseTimeText(t), toText: iso => iso.slice(0, 5) },
+};
+const nativeValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+function upgradeDateField(input) {
+  const kind = input.type, cfg = DT[kind], field = input.parentElement;
+  const initial = input.getAttribute('value') || '';
+  input.type = 'text';
+  input.setAttribute('placeholder', cfg.ph); input.setAttribute('maxlength', cfg.len); input.setAttribute('inputmode', 'numeric'); input.autocomplete = 'off';
+  Object.defineProperty(input, 'value', {
+    configurable: true,
+    get() { const iso = cfg.toIso(nativeValue.get.call(this)); return iso || ''; },
+    set(v) { nativeValue.set.call(this, v ? cfg.toText(String(v)) : ''); },
+  });
+  input.value = initial;
+  field.classList.add('has-end', 'date-field', 'always-float');
+
+  // Picker: calendar (date / date-time) via a hidden native date input; clock menu for time-only
   const btn = document.createElement('button');
   btn.type = 'button'; btn.className = 'icon-btn sm';
-  btn.setAttribute('aria-label', isTime ? 'Choose time' : 'Choose date');
-  btn.setAttribute('data-tip', isTime ? 'Choose time' : 'Choose date');
-  btn.innerHTML = `<span class="i mi">${isTime ? 'schedule' : 'calendar_today'}</span>`;
-  btn.addEventListener('click', () => { if (input.disabled) return; input.focus(); try { input.showPicker(); } catch (e) { /* older browsers: focus is enough */ } });
+  btn.setAttribute('aria-label', kind === 'time' ? 'Choose time' : 'Choose date');
+  btn.setAttribute('data-tip', kind === 'time' ? 'Choose time' : 'Choose date');
+  btn.innerHTML = `<span class="i mi">${kind === 'time' ? 'schedule' : 'calendar_today'}</span>`;
   const end = document.createElement('span'); end.className = 'adorn-end'; end.appendChild(btn);
   field.insertBefore(end, input.nextSibling);
+  let picker = null;
+  if (kind !== 'time') {
+    picker = document.createElement('input');
+    picker.type = 'date'; picker.className = 'native-picker'; picker.tabIndex = -1; picker.setAttribute('aria-hidden', 'true');
+    field.appendChild(picker);
+    picker.addEventListener('change', () => {
+      if (!picker.value) return;
+      const keepTime = kind === 'datetime-local' ? (input.value.split('T')[1] || '09:00') : null;
+      input.value = keepTime ? `${picker.value}T${keepTime}` : picker.value;
+      clearErr(); input.dispatchEvent(new Event('input', { bubbles: true })); input.dispatchEvent(new Event('change', { bubbles: true }));
+      input.focus();
+      if (kind === 'datetime-local') { const n = nativeValue.get.call(input).length; input.setSelectionRange(n - 5, n); } // time part selected, ready to type
+    });
+  }
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    if (input.disabled) return;
+    if (picker) { picker.value = (input.value || '').slice(0, 10); try { picker.showPicker(); } catch (err) { input.focus(); } return; }
+    if (openMenuAnchor === btn) return closeMenu();
+    const cur = input.value, slots = [];
+    for (let m = 0; m < 1440; m += 30) slots.push(`${pad2(m / 60 | 0)}:${pad2(m % 60)}`);
+    openMenu(btn, slots.map(t => ({ label: t, selected: t === cur, action: () => { input.value = t; clearErr(); input.dispatchEvent(new Event('change', { bubbles: true })); input.focus(); } })), { minWidth: 120 });
+    const sel = $('.menu [aria-selected="true"]') || $$('.menu .menu-item')[16]; if (sel) sel.scrollIntoView({ block: 'center' });
+  });
+
+  // Validate / tidy on blur ("10/6/26 930" → "10/06/2026 09:30")
+  const helper = () => $('.helper', field);
+  const clearErr = () => { if (!field.classList.contains('date-err')) return; field.classList.remove('date-err', 'error'); const h = helper(); if (h && h.dataset.dateErr) h.remove(); };
+  input.addEventListener('blur', () => {
+    const raw = nativeValue.get.call(input), iso = cfg.toIso(raw);
+    if (raw.trim() && iso === null) {
+      field.classList.add('date-err', 'error');
+      let h = helper(); if (!h) { h = document.createElement('div'); h.className = 'helper'; h.dataset.dateErr = '1'; field.appendChild(h); }
+      if (h.dataset.dateErr) h.textContent = cfg.err;
+      return;
+    }
+    clearErr(); input.value = iso || '';
+  });
+  input.addEventListener('input', () => { if (field.classList.contains('date-err') && cfg.toIso(nativeValue.get.call(input)) !== null) clearErr(); });
   const sync = () => { btn.disabled = input.disabled; };
   sync(); new MutationObserver(sync).observe(input, { attributes: true, attributeFilter: ['disabled'] });
-});
+}
+$$('.field > input.ctl[type="date"], .field > input.ctl[type="datetime-local"], .field > input.ctl[type="time"]').forEach(upgradeDateField);
 
 /* =====================================================================
    Documents side sheet (Figma 4628:193387) — upload, type, attach, manage
@@ -1714,7 +1913,7 @@ function openAdviseDialog(kind, rows) {
       return `<div class="aw-day${weekend ? ' weekend' : ''}" data-date="${k}">
         <div class="aw-day-head"><span class="aw-num">${d.getDate()}</span><span class="aw-dn"><b title="${fmt(d, { weekday: 'long' })}">${fmt(d, { weekday: 'short' })}</b><small>${fmt(d, { month: 'short' })}</small></span></div>
         <div class="aw-wins">${wins.map((w, i) => w.editing
-          ? `<div class="aw-win editing"><input type="time" class="cell-input" data-from="${i}" value="${w.from}" aria-label="From"><input type="time" class="cell-input" data-to="${i}" value="${w.to}" aria-label="To">
+          ? `<div class="aw-win editing"><input class="cell-input aw-time-in" data-from="${i}" value="${w.from}" placeholder="HH:MM" maxlength="5" inputmode="numeric" aria-label="From (24-hour)"><input class="cell-input aw-time-in" data-to="${i}" value="${w.to}" placeholder="HH:MM" maxlength="5" inputmode="numeric" aria-label="To (24-hour)">
              <button class="btn btn-text sm aw-ok" data-win-ok="${i}">Done</button></div>`
           : `<div class="aw-win"><button class="aw-time" data-win-edit="${i}" aria-label="Edit window ${w.from} to ${w.to}" data-tip="Edit window">${w.from}–${w.to}</button>
              <button class="icon-btn sm" data-win-del="${i}" aria-label="Remove window ${w.from} to ${w.to}" data-tip="Remove window"><span class="i mi">close</span></button></div>`).join('')}
@@ -1748,7 +1947,7 @@ function openAdviseDialog(kind, rows) {
     else if (t.matches('[data-win-del]')) wins.splice(+t.dataset.winDel, 1);
     else if (t.matches('[data-win-edit]')) wins[+t.dataset.winEdit].editing = true;
     else if (t.matches('[data-win-ok]')) {
-      const i = +t.dataset.winOk, from = $(`[data-from="${i}"]`, day).value, to = $(`[data-to="${i}"]`, day).value;
+      const i = +t.dataset.winOk, from = parseTimeText($(`[data-from="${i}"]`, day).value), to = parseTimeText($(`[data-to="${i}"]`, day).value);
       if (!from || !to || from >= to) { $(`[data-to="${i}"]`, day).style.borderColor = 'var(--error-main)'; $(`[data-to="${i}"]`, day).title = 'End time must be after start time'; return; }
       Object.assign(wins[i], { from, to, editing: false });
     } else return;

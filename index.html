@@ -6,45 +6,53 @@
 <title>Mainstreet Prototype</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Odor+Mean+Chey&family=Material+Icons&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Odor+Mean+Chey&family=Material+Icons&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300,0,0&display=swap" rel="stylesheet">
 <!-- ONE DS icon set is Font Awesome Pro Sharp (paid kit). FA Free 6 is used as a stand-in for non-Figma UI. -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<link rel="stylesheet" href="one-ds-tokens.css?v=53">
-<link rel="stylesheet" href="app.css?v=53">
+<link rel="stylesheet" href="one-ds-tokens.css?v=74">
+<link rel="stylesheet" href="app.css?v=74">
 </head>
 <body>
 
 <!-- ============================ APP BAR (Figma: Group 15529) ============================ -->
+<!-- Header: Figma "User Preferences" › Nav › Header (Context=Ops, Breakpoint=Desktop) — 8px brand bar + 56px bar.
+     Logo: original Mainstreet mark + wordmark (Odor Mean Chey), as in the Consignment Edit / Transport Dispatch Figma. -->
 <header class="appbar">
-  <a class="brand" href="#/dispatch" aria-label="Mainstreet home">
+  <a class="brand" href="#/welcome" aria-label="Mainstreet NZ – home">
     <svg class="brand-mark" viewBox="28 12 42 42" aria-hidden="true">
       <circle cx="48.5" cy="32" r="19.0761" fill="#fff" stroke-width="0.85" stroke="#C3262D"/>
       <path d="M34 19.4115C41.0674 30.363 43.403 38.012 45.0931 50.7616C59.08 53.1731 68.5221 39.4206 66.797 34.8454C56.089 25.9919 49.0346 21.7609 36.4115 17C34.9609 17.5377 34.4439 18.074 34 19.4115Z" fill="#C3262D"/>
       <path d="M35.6523 18.1562C36.1251 18.5801 36.5694 18.9855 37.037 19.4131C45.4772 26.8634 52.0618 35.6753 56.642 45.6858C56.9133 46.2461 57.1668 46.7828 57.4335 47.348C57.7657 48.0547 58.3572 48.5766 59.1091 48.7808C59.8592 48.9862 60.7081 48.8572 61.438 48.4401C62.1679 48.0231 62.71 47.3571 62.9139 46.6067C63.1196 45.8552 62.9703 45.0806 62.5301 44.4357C62.1691 43.9025 61.8212 43.3983 61.4547 42.8688C55.1579 33.3533 46.648 25.1308 37.2178 19.1819C36.6891 18.8307 36.1846 18.5025 35.6523 18.1562Z" fill="#fff"/>
     </svg>
-    <span class="brand-name" aria-label="Mainstreet NZ">Ma<span class="dot-i">i</span>nstreet<small>NZ</small></span>
+    <span class="brand-name" aria-hidden="true">Ma<span class="dot-i">i</span>nstreet<small>NZ</small></span>
   </a>
   <nav class="nav" aria-label="Main">
-    <div class="nav-item"><button class="nav-btn" data-menu="nav-new" aria-haspopup="menu" aria-expanded="false">New <span class="mi">expand_more</span></button></div>
-    <div class="nav-item"><button class="nav-btn" data-menu="nav-enquiry" aria-haspopup="menu" aria-expanded="false">Enquiry <span class="mi">expand_more</span></button></div>
-    <div class="nav-item"><button class="nav-btn" data-menu="nav-todo" aria-haspopup="menu" aria-expanded="false">To Do <span class="mi">expand_more</span></button></div>
-    <div class="nav-item"><button class="nav-btn" data-menu="nav-update" aria-haspopup="menu" aria-expanded="false">Update <span class="mi">expand_more</span></button></div>
-    <div class="nav-item"><button class="nav-btn" data-menu="nav-reports" aria-haspopup="menu" aria-expanded="false">Reports <span class="mi">expand_more</span></button></div>
-    <div class="nav-item"><button class="nav-btn" data-menu="nav-pulse" aria-haspopup="menu" aria-expanded="false">Pulse <span class="mi">expand_more</span></button></div>
-    <div class="nav-item"><button class="nav-btn" data-menu="nav-maintain" aria-haspopup="menu" aria-expanded="false">Maintain <span class="mi">expand_more</span></button></div>
-    <div class="nav-item"><button class="nav-btn" data-menu="nav-account" aria-haspopup="menu" aria-expanded="false">On Account <span class="mi">expand_more</span></button></div>
-    <div class="nav-item"><button class="nav-btn" data-menu="nav-claims" aria-haspopup="menu" aria-expanded="false">Claims <span class="mi">expand_more</span></button></div>
+    <div class="nav-item"><button class="nav-btn" data-menu="nav-new" aria-haspopup="menu" aria-expanded="false">New <span class="nav-chev" aria-hidden="true"></span></button></div>
+    <div class="nav-item"><button class="nav-btn" data-menu="nav-enquiry" aria-haspopup="menu" aria-expanded="false">Enquiry <span class="nav-chev" aria-hidden="true"></span></button></div>
+    <div class="nav-item"><button class="nav-btn" data-menu="nav-todo" aria-haspopup="menu" aria-expanded="false">To Do <span class="nav-chev" aria-hidden="true"></span></button></div>
+    <div class="nav-item active"><button class="nav-btn" data-menu="nav-update" aria-haspopup="menu" aria-expanded="false" aria-current="true">Update <span class="nav-chev" aria-hidden="true"></span></button></div>
+    <div class="nav-item"><button class="nav-btn" data-menu="nav-reports" aria-haspopup="menu" aria-expanded="false">Reports <span class="nav-chev" aria-hidden="true"></span></button></div>
+    <div class="nav-item"><button class="nav-btn" data-menu="nav-pulse" aria-haspopup="menu" aria-expanded="false">Pulse <span class="nav-chev" aria-hidden="true"></span></button></div>
+    <div class="nav-item"><button class="nav-btn" data-menu="nav-maintain" aria-haspopup="menu" aria-expanded="false">Maintain <span class="nav-chev" aria-hidden="true"></span></button></div>
+    <div class="nav-item"><button class="nav-btn" data-menu="nav-account" aria-haspopup="menu" aria-expanded="false">On Account <span class="nav-chev" aria-hidden="true"></span></button></div>
+    <div class="nav-item"><button class="nav-btn" data-menu="nav-claims" aria-haspopup="menu" aria-expanded="false">Claims <span class="nav-chev" aria-hidden="true"></span></button></div>
+    <div class="nav-item nav-more" hidden><button class="nav-btn" data-menu="nav-more" aria-haspopup="menu" aria-expanded="false"><span id="nav-more-label">+0 more</span> <span class="nav-chev" aria-hidden="true"></span></button></div>
   </nav>
   <div class="appbar-tools">
-    <button class="icon-btn" data-tip="Watched consignments" data-notbuilt="Watched consignments"><span class="i i-md mi">visibility</span><span class="badge">4</span></button>
-    <button class="icon-btn" data-tip="Pivot reports" data-notbuilt="Pivot reports"><span class="i i-md mi">pivot_table_chart</span><span class="badge">2</span></button>
     <form class="global-search" role="search" id="global-search">
-      <span class="i mi">search</span>
-      <input type="search" placeholder="Mainstreet global search" aria-label="Mainstreet global search" id="global-search-input">
-      <span class="i mi">expand_more</span>
+      <span class="ms" aria-hidden="true">search</span>
+      <input type="search" placeholder="Search pages or a reference" aria-label="Search pages or a reference" id="global-search-input">
+      <kbd class="kbd" aria-hidden="true">⌘K</kbd>
     </form>
-    <button class="icon-btn" data-tip="Help" data-notbuilt="Help centre"><span class="i i-md mi">live_help</span></button>
-    <button class="icon-btn" data-tip="Profile" data-menu="profile"><span class="i i-md mi">person_outline</span></button>
+    <button class="hdr-btn search-toggle" id="search-toggle" aria-label="Search" data-tip="Search (⌘K)"><span class="ms ms-lg">search</span></button>
+    <div class="hdr-triggers">
+      <button class="hdr-btn" data-tip="Fuelling" aria-label="Fuelling" data-notbuilt="Fuelling"><span class="ms">local_gas_station</span></button>
+      <button class="hdr-btn" data-tip="Watchlist" aria-label="Watchlist" data-notbuilt="Watchlist"><span class="ms">visibility</span></button>
+      <button class="hdr-btn" data-tip="Notifications" aria-label="Notifications" data-notbuilt="Notifications"><span class="ms">notifications</span></button>
+    </div>
+    <button class="hdr-account" data-menu="profile" aria-haspopup="menu" aria-expanded="false" aria-label="Account: Alicia">
+      <span class="acc-name">Alicia</span><span class="acc-avatar" aria-hidden="true">A</span>
+    </button>
   </div>
 </header>
 <div class="progress" id="progress" hidden></div>
@@ -229,7 +237,7 @@
           <thead><tr>
             <th class="num" style="width:90px">Pieces</th><th style="width:150px">Type</th><th>Description</th>
             <th class="num" style="width:80px">W-KG</th><th class="num" style="width:82px">Length-M</th><th class="num" style="width:82px">Width-M</th><th class="num" style="width:82px">Height-M</th><th class="num" style="width:82px">VOL-M3</th>
-            <th class="num" style="width:90px">Chargeable</th><th class="center" style="width:60px">Stack</th><th class="num" style="width:100px">UN Number</th><th style="width:96px">DG Class</th><th class="num" style="width:100px">Sub Risk</th><th class="col-actions" style="width:76px"><span class="sr-only">Actions</span></th>
+            <th class="num" style="width:90px">Chargeable</th><th class="center" style="width:60px">Stack</th><th class="num" style="width:100px">UN Number</th><th style="width:96px">DG Class</th><th class="num" style="width:100px">Sub Risk</th><th class="col-actions" style="width:56px"><span class="sr-only">Actions</span></th>
           </tr></thead>
           <tbody id="items-body"></tbody>
           <tfoot><tr class="totals" id="items-totals"></tr></tfoot>
@@ -396,12 +404,12 @@
 
   <div class="stack" id="dp-unallocated">
     <section class="card filter-bar" aria-label="Filters">
-      <div class="field select filled"><select class="ctl" id="flt-group" data-default="ALL"><option>ALL</option><option>Pickups</option><option>Deliveries</option><option>Linehaul</option></select><label for="flt-group">Dispatch Group</label></div>
-      <div class="field filled always-float"><input class="ctl" type="date" id="flt-date" value="2026-06-10" data-default="2026-06-10"><label for="flt-date">Date</label></div>
-      <div class="field select filled"><select class="ctl" id="flt-cgroup" data-default="(All Jobs)"><option>(All Jobs)</option><option>Key accounts</option><option>Retail</option><option>Industrial</option></select><label for="flt-cgroup">Customer Group</label></div>
-      <div class="field select filled"><select class="ctl" id="flt-applied" data-default="Sender"><option>Sender</option><option>Receiver</option><option>Either</option></select><label for="flt-applied">Applied to</label></div>
-      <div class="field"><input class="ctl" id="flt-lh" data-default=""><label for="flt-lh">LH Jobs</label></div>
-      <div class="field select filled" style="width:220px"><button type="button" class="ctl" id="flt-hide" data-menu="hide-menu" style="text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Unmanifested, Complete, On hold</button><label for="flt-hide">Hide</label></div>
+      <div class="field select filled disabled"><select class="ctl" id="flt-group" data-default="ALL" disabled><option>ALL</option><option>Pickups</option><option>Deliveries</option><option>Linehaul</option></select><label for="flt-group">Dispatch Group</label></div>
+      <div class="field filled always-float disabled"><input class="ctl" type="date" id="flt-date" value="2026-06-10" data-default="2026-06-10" disabled><label for="flt-date">Date</label></div>
+      <div class="field select filled disabled"><select class="ctl" id="flt-cgroup" data-default="(All Jobs)" disabled><option>(All Jobs)</option><option>Key accounts</option><option>Retail</option><option>Industrial</option></select><label for="flt-cgroup">Customer Group</label></div>
+      <div class="field select filled disabled"><select class="ctl" id="flt-applied" data-default="Sender" disabled><option>Sender</option><option>Receiver</option><option>Either</option></select><label for="flt-applied">Applied to</label></div>
+      <div class="field disabled"><input class="ctl" id="flt-lh" data-default="" disabled><label for="flt-lh">LH Jobs</label></div>
+      <div class="field select filled disabled" style="width:220px"><button type="button" class="ctl" id="flt-hide" disabled style="text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Unmanifested, Complete, On hold</button><label for="flt-hide">Hide</label></div>
       <button class="btn btn-outlined sm" id="btn-filters" aria-haspopup="dialog" aria-expanded="false" aria-controls="filter-sheet">Filters<span class="btn-badge" id="filter-count" hidden></span></button>
       <button class="btn btn-text sm" id="flt-clear">Clear</button>
       <!-- ONE DS DataGrid/Filtering: "Active filters are always shown" -->
@@ -481,6 +489,16 @@
       <hr class="sheet-divider">
 
       <section class="sheet-section">
+        <h3>Jobs</h3>
+        <div class="sheet-card sheet-grid">
+          <div class="field select filled"><select class="ctl" id="sf-group"><option>ALL</option><option>Pickups</option><option>Deliveries</option><option>Linehaul</option></select><label for="sf-group">Dispatch Group</label></div>
+          <div class="field select filled"><select class="ctl" id="sf-cgroup"><option>(All Jobs)</option><option>Key accounts</option><option>Retail</option><option>Industrial</option></select><label for="sf-cgroup">Customer Group</label></div>
+          <div class="field select filled"><select class="ctl" id="sf-applied"><option>Sender</option><option>Receiver</option><option>Either</option></select><label for="sf-applied">Applied to</label></div>
+          <div class="field always-float"><input class="ctl" id="sf-lh" placeholder="e.g. AKL01-HLZ02"><label for="sf-lh">LH Jobs</label></div>
+        </div>
+      </section>
+
+      <section class="sheet-section">
         <h3>Dates</h3>
         <div class="sheet-card sheet-grid">
           <div class="field always-float"><input class="ctl" type="date" id="sf-from"><label for="sf-from">Date from</label></div>
@@ -492,7 +510,7 @@
         <h3>Linehaul</h3>
         <div class="sheet-card sheet-grid">
           <div class="field select"><select class="ctl" id="sf-linehaul"><option value=""></option><option>AKL01 → HLZ02</option><option>AKL01 → WLG01</option><option>CHC02 → AKL01</option><option>DUN03 → AKL01</option></select><label for="sf-linehaul">Linehaul</label></div>
-          <div class="field always-float disabled" id="sf-lh-time-field"><input class="ctl" type="time" id="sf-lh-time" disabled><label for="sf-lh-time">Linehaul arrival time</label><div class="helper">Choose a linehaul first</div></div>
+          <div class="field always-float disabled has-end" id="sf-lh-time-field"><input class="ctl" type="text" id="sf-lh-time" inputmode="numeric" maxlength="5" placeholder="HH:MM" autocomplete="off" disabled><span class="adorn-end"><button type="button" class="icon-btn sm" id="sf-lh-time-btn" aria-label="Choose time" data-tip="Choose time" aria-haspopup="menu" aria-expanded="false" disabled><span class="i mi">schedule</span></button></span><label for="sf-lh-time">Linehaul arrival time</label><div class="helper">Choose a linehaul first</div></div>
         </div>
       </section>
 
@@ -539,6 +557,54 @@
 </main>
 
 <!-- ============================ NOT BUILT (ONE DS styling; no Figma design) ============================ -->
+<!-- ============================ WELCOME (ONE DS styling; no Figma design) ============================ -->
+<main class="page" id="screen-welcome" hidden>
+  <div class="welcome">
+    <p class="welcome-overline">Prototype</p>
+    <h1 class="page-title welcome-title">Mainstreet Dispatch Prototype</h1>
+    <p class="welcome-lead">A clickable prototype of two Mainstreet screens, built from the Figma designs and styled with the ONE DS design system.
+      Everything uses sample data. Anything that isn't built yet opens a "not built in this prototype" page with a way back.</p>
+
+    <div class="welcome-links">
+      <a class="welcome-card" href="#/dispatch">
+        <span class="wc-icon" aria-hidden="true"><span class="ms">local_shipping</span></span>
+        <span class="wc-body">
+          <span class="wc-title">Transport Dispatch</span>
+          <span class="wc-desc">Allocate unallocated pickups and deliveries to drivers by zone.</span>
+          <ul class="wc-try">
+            <li>Pick a zone cell, tick jobs, choose a driver, then Allocate</li>
+            <li>Filters panel, saved filters and Refresh</li>
+            <li>Bulk actions: print documents, advise customer</li>
+          </ul>
+          <span class="wc-open">Open Transport Dispatch <span class="ms" aria-hidden="true">arrow_forward</span></span>
+        </span>
+      </a>
+      <a class="welcome-card" href="#/consignment">
+        <span class="wc-icon" aria-hidden="true"><span class="ms">edit_document</span></span>
+        <span class="wc-body">
+          <span class="wc-title">Consignment Edit</span>
+          <span class="wc-desc">Review and update a consignment: legs, addresses, items and documents.</span>
+          <ul class="wc-try">
+            <li>Items grid: add, edit and delete lines; STC, Hire and Shipped As</li>
+            <li>Upload documents in the side sheet; add references</li>
+            <li>Label, Print and Copy split buttons; Save validation</li>
+          </ul>
+          <span class="wc-open">Open Consignment Edit <span class="ms" aria-hidden="true">arrow_forward</span></span>
+        </span>
+      </a>
+    </div>
+
+    <section class="welcome-tips" aria-label="Tips">
+      <h2 class="card-title">Getting around</h2>
+      <ul>
+        <li><b>Switch screens</b> with the dark Prototype pill at the bottom, or press <kbd class="kbd">Alt</kbd> <kbd class="kbd">1</kbd> / <kbd class="kbd">2</kbd> (<kbd class="kbd">Alt</kbd> <kbd class="kbd">0</kbd> comes back here).</li>
+        <li><b>Search</b> with <kbd class="kbd">⌘K</kbd>. Menus in the top bar open on hover.</li>
+        <li><b>Mainstreet logo</b> in the top-left always brings you back to this page.</li>
+      </ul>
+    </section>
+  </div>
+</main>
+
 <main class="page" id="screen-notbuilt" hidden>
   <div class="not-built" role="status">
     <i class="i fa-solid fa-compass-drafting" aria-hidden="true"></i>
@@ -564,6 +630,18 @@
 </div>
 <div class="tooltip" id="tooltip" role="tooltip"></div>
 
-<script src="app.js?v=53"></script>
+<!-- Prototype-only screen switcher (not part of the Mainstreet UI). Alt+1 / Alt+2. -->
+<nav class="proto-switch" id="proto-switch" aria-label="Prototype screens">
+  <div class="ps-open">
+    <span class="ps-label">Prototype</span>
+    <a href="#/welcome" data-screen="welcome" data-tip="Alt+0" aria-label="Welcome"><span class="ms" style="font-size:18px;vertical-align:-4px">home</span></a>
+    <a href="#/dispatch" data-screen="dispatch" data-tip="Alt+1">Transport Dispatch</a>
+    <a href="#/consignment" data-screen="consignment" data-tip="Alt+2">Consignment Edit</a>
+    <button type="button" class="ps-btn" data-ps-toggle aria-label="Hide screen switcher" data-tip="Hide"><span class="mi">expand_more</span></button>
+  </div>
+  <button type="button" class="ps-collapsed" data-ps-toggle aria-label="Show prototype screen switcher" data-tip="Switch screen (Alt+1 / Alt+2)"><span class="mi">swap_horiz</span></button>
+</nav>
+
+<script src="app.js?v=74"></script>
 </body>
 </html>

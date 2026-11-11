@@ -941,3 +941,187 @@ table.grid { width: 100%; border-collapse: separate; border-spacing: 0; font: va
 
 /* Title row: no minimum height, so nav → title is exactly dimension/navigation-to-content (10px <1600, 12px ≥1600) */
 .page-head { min-height: 0; align-items: flex-start; }
+
+/* Responsive nav: takes the space between logo and tools; overflow collapses into "+N more" */
+.nav { flex: 1 1 auto; min-width: 0; overflow: hidden; }
+.nav-item[hidden] { display: none; }
+.nav-more .nav-btn { color: var(--primary-main); }
+
+/* =========== Prototype screen switcher (prototype tool, deliberately dark so it never reads as product UI) =========== */
+.proto-switch { position: fixed; left: 50%; bottom: 76px; transform: translateX(-50%); z-index: 45; }
+.proto-switch .ps-open { display: flex; align-items: center; gap: 2px; padding: 4px 4px 4px 14px; border-radius: 9999px;
+  background: rgba(33,33,33,.92); color: #fff; box-shadow: var(--elevation-6); font: var(--typography-body2); }
+.ps-label { margin-right: 6px; font: 500 11px/1 var(--font-family); letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.6); }
+.proto-switch a { padding: 6px 12px; border-radius: 9999px; color: #fff; text-decoration: none; white-space: nowrap; }
+.proto-switch a:hover { background: rgba(255,255,255,.12); }
+.proto-switch a[aria-current="page"] { background: #fff; color: rgba(0,0,0,.87); font-weight: 500; }
+.proto-switch .ps-btn, .proto-switch .ps-collapsed { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; padding: 0;
+  border: 0; border-radius: 50%; background: none; color: #fff; cursor: pointer; }
+.proto-switch .ps-btn:hover { background: rgba(255,255,255,.12); }
+.proto-switch .ps-collapsed { display: none; width: 40px; height: 40px; background: rgba(33,33,33,.92); box-shadow: var(--elevation-6); }
+.proto-switch .ps-collapsed:hover { background: rgba(33,33,33,1); }
+.proto-switch.collapsed { left: auto; right: 16px; transform: none; }
+.proto-switch.collapsed .ps-open { display: none; }
+.proto-switch.collapsed .ps-collapsed { display: inline-flex; }
+.proto-switch :focus-visible { outline: 2px solid #90caf9; outline-offset: 2px; }
+
+/* Smaller breakpoints (< lg 1280): the nav stays fixed across the top, full viewport width, and never hides;
+   the page content keeps its 1240px minimum and scrolls horizontally underneath it. */
+@media (max-width: 1279.98px) {
+  .appbar { position: fixed; top: 0; left: 0; right: 0; transform: none !important; }
+  body { padding-top: 72px; }
+}
+@media (max-width: 1279.98px) {
+  .global-search { min-width: 180px; width: 220px; }
+  .brand { margin-right: 12px; }
+}
+
+/* Autocomplete (Code/Name, Customer, Sales rep): no Clear while disabled; dropdown arrow matches the Select caret */
+.field.auto.disabled .clear-btn { display: none; }
+.field.auto .caret { font-size: 26px; width: 20px; height: 20px; margin-right: 1px; color: var(--action-active); }
+.field.auto.disabled .caret { color: var(--action-disabled); }
+
+/* Selected rows keep the selected colour over zebra stripes and hover (drivers + jobs) */
+.figma-screen .drivers-grid tbody tr.selected td,
+.figma-screen .drivers-grid tbody tr.selected:hover td,
+.figma-screen .jobs-grid tbody.job.selected td,
+.figma-screen .jobs-grid tbody.job.selected:hover td { background: var(--background-table-selected); }
+
+/* Containers clip their content when the window narrows (grids scroll inside them instead of spilling out) */
+.card { overflow: hidden; }
+.stack > *, .row-2 > *, .misc-row > *, .dispatch-grids > *, .addr-grid > *, .hdr-grid > * { min-width: 0; }
+.card .grid-wrap { max-width: 100%; }
+
+/* Date fields: text truncates before the calendar icon instead of running underneath it */
+.field.date-field input.ctl { overflow: hidden; }
+.field.date-field input.ctl::-webkit-datetime-edit { overflow: hidden; min-width: 0; max-width: 100%; }
+.field.date-field input.ctl::-webkit-datetime-edit-fields-wrapper { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+/* Disabled filter-bar Hide field reads like the other disabled fields */
+.field.disabled > button.ctl { background: var(--background-input-disabled); color: var(--text-disabled); border-color: var(--action-disabled-background); cursor: default; }
+/* Date fields: same height as other inputs */
+.field input[type="date"].ctl, .field input[type="datetime-local"].ctl, .field input[type="time"].ctl { height: var(--input-min-height); min-height: 0; padding-top: 0; padding-bottom: 0; line-height: normal; }
+.field input[type="date"].ctl, .field input[type="datetime-local"].ctl, .field input[type="time"].ctl { height: calc(var(--input-min-height) + 2px); }
+
+/* Linehaul arrival time (text HH:MM + clock menu) */
+#sf-lh-time { font-variant-numeric: tabular-nums; }
+#sf-lh-time::placeholder { color: var(--text-secondary); }
+
+/* Date/time fields are typed text now: same height, padding and vertical centring as every other input */
+.field.date-field > input.ctl { height: auto; min-height: var(--input-min-height); padding-top: var(--input-padding-vertical); padding-bottom: var(--input-padding-vertical); font-variant-numeric: tabular-nums; }
+.field.date-field > input.ctl:focus { padding-top: calc(var(--input-padding-vertical) - 1px); padding-bottom: calc(var(--input-padding-vertical) - 1px); }
+.field.date-field > input.ctl::placeholder { color: var(--text-secondary); opacity: 1; }
+.field.date-field .native-picker { position: absolute; left: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; border: 0; padding: 0; }
+.aw-time-in { font-variant-numeric: tabular-nums; text-align: center; }
+
+/* =====================================================================
+   New header (Figma: User Preferences › Nav › Header, Ops / Desktop)
+   8px brand bar (#007CC4) + 56px white bar with #E0E0E0 bottom border, 16px side padding
+   ===================================================================== */
+.ms { font-family: "Material Symbols Outlined"; font-weight: 300; font-style: normal; font-size: 18px; line-height: 1; letter-spacing: normal;
+  text-transform: none; white-space: nowrap; direction: ltr; -webkit-font-feature-settings: "liga"; font-feature-settings: "liga";
+  font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 20; }
+.ms-lg { font-size: 22px; }
+.appbar { height: 64px; padding: 0 16px; gap: 0; border-top: 8px solid var(--primary-main); border-bottom: 1px solid #e0e0e0; box-shadow: none; }
+/* Logo: Mainstreet mark + wordmark in Chakra Petch Bold Italic */
+.brand { display: flex; align-items: center; gap: 8px; margin-right: 16px; flex: none; }
+.brand-mark { width: 32px; height: 32px; }
+.brand-word { position: relative; font: italic 700 23px/1 "Chakra Petch", var(--font-family); letter-spacing: -0.01em; color: #1a1a1a; padding-right: 2px; }
+.brand-word small { position: absolute; right: 0; bottom: -10px; font: italic 700 9px/1 "Chakra Petch", var(--font-family); letter-spacing: .08em; color: var(--brand-red, #C3262D); }
+.brand-name { display: none; }
+/* Menu items: 34px, radius 6, padding 0 8, gap 6; Inter 13 #212121; active = Inter SemiBold 14 #00629D */
+.nav { height: auto; align-self: center; gap: 2px; }
+.nav-item { display: flex; }
+.nav-btn { height: 34px; padding: 0 8px; gap: 6px; border-radius: 6px; font: 400 13px/18px var(--font-family); color: #212121; white-space: nowrap; }
+.nav-btn:hover { background: var(--action-hover); }
+.nav-btn[aria-expanded="true"] { background: var(--action-selected); }
+.nav-btn.current { background: none; }
+.nav-item.active .nav-btn { font: 600 14px/20px var(--font-family); letter-spacing: -0.005em; color: #00629d; }
+.nav-chev { width: 10px; height: 10px; flex: none; background: currentColor; opacity: .7;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M2 3.5l3 3 3-3' fill='none' stroke='black' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/10px no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M2 3.5l3 3 3-3' fill='none' stroke='black' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/10px no-repeat; }
+.nav-more .nav-btn { color: #212121; }
+/* Right side: search 412×40, triggers 30px, account */
+.appbar-tools { gap: 8px; flex: none; }
+.global-search { width: 412px; min-width: 0; max-width: none; flex: none; height: 40px; padding: 0 10px 0 12px; gap: 8px; border-radius: 4px; border: 1px solid var(--components-input-outlined-enabled-border); }
+.global-search:focus-within { padding: 0 9px 0 11px; }
+.global-search .ms { color: var(--action-active); }
+.global-search input { font: 400 14px/20px var(--font-family); letter-spacing: -0.005em; }
+.global-search input::placeholder { color: var(--text-secondary); }
+.global-search input::-webkit-search-cancel-button { display: none; }
+.kbd { flex: none; padding: 1px 6px; border-radius: 3px; background: rgba(0,0,0,.05); border: 1px solid rgba(0,0,0,.12); font: 500 11px/16px var(--font-family); color: var(--text-secondary); }
+.hdr-triggers { display: flex; }
+.hdr-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--action-active); cursor: pointer; }
+.hdr-btn:hover { background: var(--action-hover); }
+.hdr-btn .ms { font-size: 18px; }
+.search-toggle { display: none; width: 36px; height: 36px; }
+.hdr-account { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 4px 4px 4px 10px; border: 0; border-radius: 4px; background: none; cursor: pointer; }
+.hdr-account:hover, .hdr-account[aria-expanded="true"] { background: var(--action-hover); }
+.acc-name { font: 400 14px/24px var(--font-family); letter-spacing: .01em; color: var(--text-primary); }
+.acc-avatar { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: #e3f2fd; color: var(--primary-main); font: 600 13px/1 var(--font-family); }
+/* Narrower screens: search collapses to an icon (Figma tablet variant); opens over the bar */
+@media (max-width: 1599.98px) {
+  .global-search { width: 300px; }
+}
+@media (max-width: 1279.98px) {
+  body { padding-top: 64px; }
+  .global-search { display: none; }
+  .search-toggle { display: inline-flex; }
+  .appbar.search-open .global-search { display: flex; position: absolute; right: 16px; top: 8px; width: min(412px, calc(100vw - 32px)); background: var(--background-paper); box-shadow: var(--elevation-8); z-index: 2; }
+}
+.progress { top: 0; }
+
+/* Consignment Edit items grid: no divider lines (above the header, between rows, above the chips) */
+.items-card > .grid-wrap { border-top: 0; }
+.items-grid td, .items-grid th { border-top: 0; border-bottom: 0; }
+.items-card .items-chips { border-top: 0; }
+
+/* Consignment Edit: no divider lines above or below any data grid header (cards + Documents sheet) */
+#screen-consignment .card > .grid-wrap { border-top: 0; }
+#screen-consignment .grid thead th { border-top: 0; border-bottom: 0; box-shadow: none; }
+#screen-consignment .docs-toolbar { border-bottom: 0; }
+
+/* Empty-state rows ("No items" etc.) are not interactive: no hover highlight, no row line */
+.grid tbody tr.empty:hover td, .grid tbody tr.empty td { background: transparent; border-bottom: 0; cursor: default; }
+
+/* Logo reverted to the original Mainstreet logo (mark + Odor Mean Chey wordmark with dotted i and NZ) */
+.brand { gap: 6px; }
+.brand-mark { width: 40px; height: 40px; }
+.brand-name { display: inline-block; position: relative; font: 400 30px/1 "Odor Mean Chey", Georgia, serif; letter-spacing: 0; color: #111; }
+.brand-name small { position: absolute; left: 0; bottom: -10px; font: 700 10px/1 var(--font-family); letter-spacing: 0; color: #111; }
+.brand-name .dot-i { position: relative; }
+.brand-name .dot-i::after { content: ""; position: absolute; left: 50%; top: 0.4em; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: #111; }
+
+/* Logo at 32px tall overall (mark + wordmark + NZ), everything scaled by 0.8 from the 40px version */
+.brand { gap: 5px; height: 32px; }
+.brand-mark { width: 32px; height: 32px; }
+.brand-name { font-size: 24px; line-height: 1; margin-top: -8px; }
+.brand-name small { font-size: 8px; bottom: -8px; }
+.brand-name .dot-i::after { width: 4px; height: 4px; margin-left: -2px; top: 0.4em; }
+
+/* Sticky bottom action bars: shadow instead of a divider line (Figma "Frame 15924": drop shadow 0 -1 10, black 12%, no stroke) */
+.action-bar { border-top: 0; box-shadow: 0 -1px 10px rgba(0,0,0,.12); }
+
+/* =========== Welcome screen (ONE DS; no Figma design) =========== */
+.welcome { max-width: 1040px; margin: 0 auto; padding: 32px 0 96px; }
+.welcome-overline { margin: 0 0 4px; font: 500 12px/16px var(--font-family); letter-spacing: .08em; text-transform: uppercase; color: var(--primary-main); }
+.welcome-title { margin: 0 0 8px; }
+.welcome-lead { max-width: 720px; margin: 0 0 24px; font: var(--typography-subtitle1); color: var(--text-secondary); }
+.welcome-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--dimension-between-cards-groups); margin-bottom: var(--dimension-between-cards-groups); }
+.welcome-card { display: flex; gap: 16px; padding: 20px; background: var(--background-paper); border: 1px solid var(--color-divider); border-radius: var(--radius-md);
+  text-decoration: none; color: var(--text-primary); transition: border-color var(--duration-shortest,150ms), box-shadow var(--duration-shortest,150ms); }
+.welcome-card:hover { border-color: var(--primary-main); box-shadow: var(--elevation-1); }
+.welcome-card:focus-visible { outline: 2px solid var(--primary-main); outline-offset: 2px; }
+.wc-icon { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 48px; height: 48px; border-radius: var(--radius-md); background: var(--primary-states-selected); color: var(--primary-main); }
+.wc-icon .ms { font-size: 26px; }
+.wc-body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.wc-title { font: var(--typography-h4); letter-spacing: -0.01em; }
+.wc-desc { font: var(--typography-body1); color: var(--text-secondary); }
+.wc-try { margin: 4px 0 8px; padding-left: 18px; font: var(--typography-body2); color: var(--text-primary); }
+.wc-try li { margin: 2px 0; }
+.wc-open { display: inline-flex; align-items: center; gap: 4px; margin-top: auto; font: var(--button-medium); text-transform: uppercase; letter-spacing: .4px; color: var(--primary-main); }
+.wc-open .ms { font-size: 18px; transition: transform var(--duration-shortest,150ms); }
+.welcome-card:hover .wc-open .ms { transform: translateX(3px); }
+.welcome-tips { padding: 16px 20px; background: var(--background-paper); border: 1px solid var(--color-divider); border-radius: var(--radius-md); }
+.welcome-tips ul { margin: 8px 0 0; padding-left: 18px; font: var(--typography-body1); color: var(--text-primary); }
+.welcome-tips li { margin: 4px 0; }
+@media (max-width: 760px) { .welcome-links { grid-template-columns: 1fr; } }
