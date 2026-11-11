@@ -783,3 +783,161 @@ table.grid { width: 100%; border-collapse: separate; border-spacing: 0; font: va
 .leg:hover { filter: none; }
 .leg:focus-visible { outline: none; }
 .leg:focus-visible > svg.leg-bg path:last-child { stroke: var(--primary-main); stroke-width: 2; }
+
+/* Tabs: label centred within the tab */
+.tab { justify-content: center; }
+/* Date/time fields use our own calendar icon button — hide the browser's built-in one */
+.field.date-field input.ctl::-webkit-calendar-picker-indicator { display: none; -webkit-appearance: none; }
+.field.date-field .adorn-end .i { font-size: 18px; }
+.field.date-field .adorn-end .icon-btn:disabled .i { color: var(--action-disabled); }
+
+/* "More" (⋮) in the Consignment Edit footer: Secondary outlined, circular, same height as the buttons */
+.icon-btn.icon-btn-outlined { width: 36px; height: 36px; border: 1px solid var(--primary-states-outlined-border); color: var(--primary-main); }
+.icon-btn.icon-btn-outlined:hover { border-color: var(--primary-main); background: var(--primary-states-hover); }
+/* Pressed state while a menu is open: split-button arrows and the More button */
+.split > .btn.split-arrow[aria-expanded="true"],
+.icon-btn.icon-btn-outlined[aria-expanded="true"] { background: var(--primary-states-focus); border-color: var(--primary-main); position: relative; z-index: 1; }
+.split > .btn-contained.split-arrow[aria-expanded="true"] { background: var(--primary-dark); }
+/* Action menus (split buttons, More): 14px blue items, per Figma */
+.menu.action .menu-item { font: var(--menu-item-default); min-height: 36px; padding: 6px 16px; }
+
+/* Dispatch grids: icons at the same size as Consignment Edit's grid/field icons (20px Small, ONE DS "Icons in Tables") */
+.jobs-grid .status-icons { gap: 4px; margin-top: 2px; }
+.jobs-grid .status-icons .i, .drivers-grid .drv-icons .i { width: var(--icon-size-small, 20px); height: var(--icon-size-small, 20px); font-size: 20px; }
+.drivers-grid .drv-icons { gap: 4px; }
+
+/* Driver grid percentages: plain text values at body2 (13/18), no chip */
+.drivers-grid .pct { padding: 0; border-radius: 0; background: none; font: var(--typography-body2); line-height: 20px; color: var(--text-table-default); }
+/* First percentage green, second red */
+.drivers-grid .drv-icons .pct { color: var(--success-light); }
+.drivers-grid .drv-icons .pct + .pct { color: var(--error-main); }
+
+/* =========== Advise Customer dialog (Dialog md 900) =========== */
+.dialog.md .dialog-body { max-height: calc(100vh - 220px); overflow: auto; border-top: 1px solid transparent; }
+.aw-section { margin-bottom: 20px; color: var(--text-primary); }
+.aw-section:last-child { margin-bottom: 4px; }
+.aw-h { margin: 0 0 8px; font: var(--typography-h6); letter-spacing: -0.01em; }
+.aw-table { border: 1px solid var(--components-table-border); border-radius: var(--radius-md); overflow: auto; }
+.aw-table .grid th, .aw-table .grid td { font-size: 13px; padding: 0 8px; }
+.aw-table .grid tbody tr:last-child td { border-bottom: 0; }
+.aw-warn { display: flex; align-items: center; gap: 6px; margin-top: 8px; padding: 6px 12px 6px 8px; border-radius: var(--radius-sm);
+  background: var(--components-alert-warning-background); border: 1px solid var(--components-alert-warning-border); font: var(--typography-body2); }
+.aw-warn .i { color: var(--warning-main); }
+.aw-msg-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: var(--dimension-label-field-to-field); align-items: center; margin-bottom: var(--dimension-field-to-field-vertical); }
+.aw-msg-row .field[hidden] { display: none; }
+.aw-transport { display: flex; align-items: center; gap: 4px; margin: 0; padding: 0; border: 0; }
+.aw-transport legend { float: left; margin-right: 8px; font: var(--typography-body2); color: var(--text-secondary); }
+.field > textarea#aw-message { min-height: 200px; font: var(--typography-body2); line-height: 18px; }
+.aw-days-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.aw-days-head .aw-h { margin: 0; }
+.aw-week-nav { display: flex; align-items: center; gap: 4px; }
+.aw-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+.aw-day { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 0 0 6px; border: 1px solid var(--color-divider); border-radius: var(--radius-sm); background: var(--background-paper); }
+.aw-day.weekend { background: var(--background-container-default); }
+.aw-day-head { display: flex; align-items: center; gap: 6px; padding: 6px 8px; background: var(--primary-states-selected); border-radius: var(--radius-sm) var(--radius-sm) 0 0; }
+.aw-day.weekend .aw-day-head { background: var(--neutral-200); }
+.aw-num { font: 500 18px/24px var(--font-family); }
+.aw-dn { display: flex; flex-direction: column; min-width: 0; }
+.aw-dn b { font: var(--typography-subtitle2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aw-dn small { font: var(--typography-caption); color: var(--text-secondary); }
+.aw-wins { display: flex; flex-direction: column; gap: 4px; padding: 0 6px; }
+.aw-win { display: flex; align-items: center; gap: 0; padding-left: 6px; border: 1px solid var(--components-input-outlined-enabled-border); border-radius: var(--radius-sm); font: var(--typography-body2); }
+.aw-win > span:first-child { flex: 1; white-space: nowrap; }
+.aw-win .icon-btn.sm { width: 24px; height: 24px; }
+.aw-win .icon-btn .i { font-size: 16px; }
+.aw-win.editing { flex-wrap: wrap; gap: 2px; padding: 4px; border-color: var(--primary-main); }
+.aw-win.editing .cell-input { height: 26px; padding: 0 4px; flex: 1 1 60px; min-width: 0; font-size: 12px; }
+.aw-win.editing > span { flex: none; }
+.aw-add { align-self: flex-start; margin-left: 4px; }
+
+/* Compact pickup-window columns */
+.aw-win { padding-left: 0; }
+.aw-time { flex: 1; min-width: 0; height: 26px; padding: 0 6px; border: 0; background: none; cursor: pointer; text-align: left;
+  font: 400 12px/26px var(--font-family); font-variant-numeric: tabular-nums; color: var(--text-primary); white-space: nowrap; border-radius: var(--radius-sm); }
+.aw-time:hover { background: var(--action-hover); }
+.aw-win.editing { flex-direction: column; align-items: stretch; flex-wrap: nowrap; }
+.aw-win.editing .cell-input { flex: none; width: 100%; }
+.aw-win.editing .aw-ok { align-self: flex-end; height: 24px; min-width: 0; padding: 0 6px; }
+.aw-add { padding-left: 4px; padding-right: 8px; min-width: 0; }
+.aw-add .i { width: 16px; height: 16px; font-size: 16px; }
+.aw-section[hidden], .aw-msg-row[hidden] { display: none; }
+/* Required bar on multiline fields: full height of the text area (helper text below excluded) */
+.field.required:has(> textarea)::before { height: auto; bottom: 0; }
+.field.required:has(> textarea):has(> .helper)::before { bottom: 19px; }
+
+/* Item grid placeholders ("Enter…" / "Select…") for new, empty rows */
+.cell-input::placeholder { color: var(--text-secondary); opacity: 1; }
+.cell-select.is-empty { color: var(--text-secondary); }
+.cell-select option { color: var(--text-primary); }
+
+/* =========== Item extras dialogs (STC, Shipped As, Hire, Item Details) =========== */
+.xg-table { border: 1px solid var(--components-table-border); border-radius: var(--radius-md); overflow: auto; }
+.xg-grid tbody tr:last-child td { border-bottom: 0; }
+.xg-grid .xg-ro { color: var(--text-secondary); font: var(--typography-body2); white-space: nowrap; }
+.xg-grid .col-check { width: 44px; }
+.xg-foot { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.xg-foot .aw-warn { margin-top: 0; }
+.xg-bulk { display: flex; align-items: center; gap: 8px; min-height: 44px; margin-bottom: 8px; padding: 0 8px 0 12px; border-radius: var(--radius-sm);
+  background: var(--background-table-selected); font: var(--typography-subtitle2); color: var(--text-primary); }
+/* Required cells: red bar on the left edge, like required fields */
+.cell-input.req { box-shadow: inset 3px 0 0 var(--error-main); }
+.cell-input.invalid { border-color: var(--error-main); }
+.id-search { max-width: 320px; margin-bottom: 16px; }
+.id-head { margin-bottom: 8px; }
+.chip.toggle[data-extra] { cursor: pointer; }
+
+.xg-grid th .req-star { color: var(--error-main); margin-left: 2px; }
+/* Journey tracker: keep each leg's text on one line; the row scrolls sideways on narrower screens (Figma legs are 403px) */
+.legs { overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; scrollbar-width: thin; }
+.leg { flex: 1 0 360px; }
+.leg-top, .leg-line { white-space: nowrap; }
+.leg-top { overflow: hidden; }
+
+/* =========== Documents side sheet (Figma "Document Uploads - Hybrid") =========== */
+.docs-sheet { width: min(864px, 100vw); }
+.dropzone { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 18px 14px; cursor: pointer; text-align: center;
+  border: 1px dashed var(--primary-main); border-radius: var(--radius-sm); background: var(--primary-states-selected); color: var(--text-primary); }
+.dropzone:hover, .dropzone.drag { background: var(--primary-states-focus); }
+.dropzone:focus-within { outline: 2px solid var(--primary-main); outline-offset: 2px; }
+.dz-icon { width: 24px; height: 24px; font-size: 24px; color: var(--primary-main); }
+.dz-text { font: var(--typography-body1); }
+.dz-link { color: var(--primary-main); text-decoration: underline; }
+.dz-hint { font: var(--typography-caption); color: var(--text-secondary); }
+.up-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.up-list:empty { display: none; }
+.up-item { display: flex; align-items: center; gap: 12px; padding: 12px 8px 12px 16px; background: var(--background-paper); border: 1px solid var(--color-divider); border-radius: var(--radius-sm); }
+.up-item.error { border-color: var(--components-alert-error-border); background: var(--components-alert-error-background); }
+.up-icon { color: var(--primary-main); }
+.up-item.error .up-icon { color: var(--error-main); }
+.up-info { flex: 1; min-width: 0; }
+.up-name { font: 400 16px/24px var(--font-family); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.up-meta { font: var(--typography-body2); color: var(--text-secondary); }
+.up-meta .dot { margin: 0 4px; }
+.up-err { color: var(--error-main); }
+.up-bar { height: 4px; margin-top: 6px; width: 200px; max-width: 100%; border-radius: 2px; background: var(--primary-states-selected); overflow: hidden; }
+.up-bar span { display: block; height: 100%; background: var(--primary-main); transition: width var(--duration-short, 250ms); }
+.up-type { width: 240px; flex: none; }
+.up-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+.docs-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.docs-head h3 { margin: 0; display: flex; align-items: center; gap: 8px; }
+.count-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px;
+  background: var(--primary-main); color: #fff; font: var(--badge-label); line-height: 20px; }
+.docs-required { font: var(--typography-body2); color: var(--warning-dark, #E34E0B); cursor: default; }
+.docs-required.done { color: var(--success-light); }
+.docs-toolbar { display: flex; align-items: center; gap: 4px; min-height: 48px; padding: 0 8px 0 12px; border-bottom: 1px solid var(--components-table-border); }
+.tb-divider { width: 1px; height: 28px; background: var(--color-divider); margin: 0 4px; }
+.docs-search { display: flex; align-items: center; gap: 6px; flex: 1; max-width: 320px; height: 34px; padding: 0 10px; border: 1px solid var(--components-input-outlined-enabled-border); border-radius: var(--radius-sm); }
+.docs-search[hidden] { display: none; }
+.docs-search input { flex: 1; border: 0; outline: 0; background: none; font: var(--typography-body1); min-width: 0; }
+.docs-search:focus-within { border: 2px solid var(--primary-main); padding: 0 9px; }
+.docs-grid td { font: var(--component-datagrid-body); }
+.docs-grid tbody tr:last-child td { border-bottom: 0; }
+.req-chip { display: inline-flex; align-items: center; height: 18px; padding: 0 8px; margin-left: 4px; border-radius: 100px; vertical-align: middle;
+  background: var(--primary-states-selected); color: var(--primary-main); font: 400 11px/18px var(--font-family); }
+
+/* Documents sheet: toolbar icon buttons sit at the right of the grid */
+.docs-toolbar .spacer { flex: 1; }
+.docs-toolbar { justify-content: flex-end; }
+
+/* Title row: no minimum height, so nav → title is exactly dimension/navigation-to-content (10px <1600, 12px ≥1600) */
+.page-head { min-height: 0; align-items: flex-start; }

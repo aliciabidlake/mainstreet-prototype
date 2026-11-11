@@ -9,8 +9,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Odor+Mean+Chey&family=Material+Icons&display=swap" rel="stylesheet">
 <!-- ONE DS icon set is Font Awesome Pro Sharp (paid kit). FA Free 6 is used as a stand-in for non-Figma UI. -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<link rel="stylesheet" href="one-ds-tokens.css?v=31">
-<link rel="stylesheet" href="app.css?v=31">
+<link rel="stylesheet" href="one-ds-tokens.css?v=51">
+<link rel="stylesheet" href="app.css?v=51">
 </head>
 <body>
 
@@ -139,13 +139,13 @@
             <div class="addr-icons">
               <button class="icon-btn" data-tip="Show on map" data-notbuilt="Map view – pickup address"><span class="i mi">map</span></button>
               <button class="icon-btn" data-tip="Address history" data-notbuilt="Pickup address history"><span class="i mi">history</span></button>
-              <button class="icon-btn" data-tip="Pickup run" data-notbuilt="Pickup run details"><span class="i mi">local_shipping</span></button>
+              <button class="icon-btn" data-tip="Residential address" data-notbuilt="Residential address details – pickup"><span class="i mi">home</span></button>
             </div>
             <div class="field select filled disabled o-lock"><select class="ctl" id="p-site" data-k="site" disabled><option>DUN03</option><option>DUN01</option><option>MCF03</option><option>AKL01</option><option>CHC02</option></select><label for="p-site">Site</label></div>
             <div class="field select filled disabled o-lock"><select class="ctl" id="p-zone" data-k="zone" disabled><option>1</option><option>2</option><option>3</option><option>9</option></select><label for="p-zone">Zone</label></div>
             <div class="call-row">
-              <label class="check"><input type="checkbox"><span class="box"></span>Call required</label>
-              <button class="btn btn-outlined sm" data-notbuilt="Pickup call details"><span class="i mi">add</span>Details</button>
+              <label class="check"><input type="checkbox" class="call-required"><span class="box"></span>Call required</label>
+              <button class="btn btn-outlined sm call-details" disabled data-notbuilt="Pickup call details"><span class="i mi">add</span>Details</button>
             </div>
 
             <label class="check"><input type="checkbox" class="override"><span class="box"></span>Override</label>
@@ -154,7 +154,10 @@
             <div class="field filled disabled o-lock"><input class="ctl" id="p-city" data-k="city" value="DUNEDIN" disabled><label for="p-city">City</label></div>
             <div></div>
             <div class="field select filled disabled o-lock" style="grid-column: span 2"><select class="ctl" id="p-branch" data-k="branch" disabled><option>03NZ - MAINFREIGHT DUNEDIN</option><option>01NZ - MAINFREIGHT AUCKLAND</option><option>02NZ - MAINFREIGHT CHRISTCHURCH</option></select><label for="p-branch">Branch</label></div>
-            <div class="field"><input class="ctl" id="p-release"><label for="p-release">Release/Pickup #</label></div>
+            <div class="pair" style="grid-template-columns: 1fr 28px">
+              <div class="field"><input class="ctl" id="p-release"><label for="p-release">Release/Pickup #</label></div>
+              <span></span>
+            </div>
 
             <div></div>
             <div class="field select filled"><select class="ctl" id="p-contact"><option>Customer Service</option><option>Dispatch Desk</option><option>Warehouse Manager</option><option value="">—</option></select><label for="p-contact">Contact</label></div>
@@ -164,7 +167,7 @@
             <div class="field filled" style="grid-column: span 2"><input class="ctl" id="p-sendref" value="554311"><label for="p-sendref">Send ref</label></div>
             <div class="pair">
               <div class="field always-float"><input class="ctl" type="datetime-local" id="p-ready"><label for="p-ready">Pickup ready from</label></div>
-              <div class="field always-float required"><input class="ctl" type="datetime-local" id="p-basic" data-required><label for="p-basic">Basic date field<span class="req-star">*</span></label></div>
+              <div class="field always-float required"><input class="ctl" type="datetime-local" id="p-basic" data-required><label for="p-basic">Pickup ready to<span class="req-star">*</span></label></div>
               <span style="width:28px"></span>
             </div>
           </div>
@@ -184,13 +187,13 @@
             <div class="addr-icons">
               <button class="icon-btn" data-tip="Show on map" data-notbuilt="Map view – delivery address"><span class="i mi">map</span></button>
               <button class="icon-btn" data-tip="Address history" data-notbuilt="Delivery address history"><span class="i mi">history</span></button>
-              <button class="icon-btn" data-tip="Delivery run" data-notbuilt="Delivery run details"><span class="i mi">local_shipping</span></button>
+              <button class="icon-btn" data-tip="Residential address" data-notbuilt="Residential address details – delivery"><span class="i mi">home</span></button>
             </div>
             <div class="field select filled disabled o-lock"><select class="ctl" id="d-site" data-k="site" disabled><option>MCF03</option><option>DUN03</option><option>DUN01</option><option>AKL01</option><option>CHC02</option></select><label for="d-site">Site</label></div>
             <div class="field select filled disabled o-lock"><select class="ctl" id="d-zone" data-k="zone" disabled><option>9</option><option>1</option><option>2</option><option>3</option></select><label for="d-zone">Zone</label></div>
             <div class="call-row">
-              <label class="check"><input type="checkbox"><span class="box"></span>Call required</label>
-              <button class="btn btn-outlined sm" data-notbuilt="Delivery call details"><span class="i mi">add</span>Details</button>
+              <label class="check"><input type="checkbox" class="call-required"><span class="box"></span>Call required</label>
+              <button class="btn btn-outlined sm call-details" disabled data-notbuilt="Delivery call details"><span class="i mi">add</span>Details</button>
             </div>
 
             <label class="check"><input type="checkbox" class="override"><span class="box"></span>Override</label>
@@ -217,10 +220,8 @@
             </div>
           </div>
         </section>
-      </div>
-    </div>
 
-    <!-- ITEMS GRID -->
+    <!-- ITEMS GRID (inside the Edit tab panel: switching tabs swaps everything below the tabs) -->
     <section class="card items-card" aria-label="Items">
       <div class="card-head"><button class="btn btn-outlined sm" id="add-item"><span class="i mi">add</span>Add</button></div>
       <div class="grid-wrap">
@@ -228,17 +229,17 @@
           <thead><tr>
             <th class="num" style="width:90px">Pieces</th><th style="width:150px">Type</th><th>Description</th>
             <th class="num" style="width:80px">W-KG</th><th class="num" style="width:82px">Length-M</th><th class="num" style="width:82px">Width-M</th><th class="num" style="width:82px">Height-M</th><th class="num" style="width:82px">VOL-M3</th>
-            <th class="num" style="width:90px">Chargeable</th><th class="center" style="width:60px">Stack</th><th class="num" style="width:100px">UN Number</th><th style="width:96px">DG Class</th><th class="num" style="width:100px">Sub Risk</th><th class="col-actions" style="width:56px"><span class="sr-only">Actions</span></th>
+            <th class="num" style="width:90px">Chargeable</th><th class="center" style="width:60px">Stack</th><th class="num" style="width:100px">UN Number</th><th style="width:96px">DG Class</th><th class="num" style="width:100px">Sub Risk</th><th class="col-actions" style="width:76px"><span class="sr-only">Actions</span></th>
           </tr></thead>
           <tbody id="items-body"></tbody>
           <tfoot><tr class="totals" id="items-totals"></tr></tfoot>
         </table>
       </div>
       <div class="items-chips">
-        <button class="chip toggle" aria-pressed="false" data-tip="Said to contain">STC</button>
+        <button class="chip toggle" aria-pressed="false" data-extra="stc" data-tip="Said to contain" aria-haspopup="dialog">STC</button>
         <span style="width:128px"></span>
-        <button class="chip toggle" aria-pressed="false" data-tip="Hire equipment">HIRE</button>
-        <button class="chip toggle" aria-pressed="false" data-tip="Shipped as declared">SHIPPED AS</button>
+        <button class="chip toggle" aria-pressed="false" data-extra="hire" data-tip="Hire equipment" aria-haspopup="dialog">HIRE</button>
+        <button class="chip toggle" aria-pressed="false" data-extra="shipped" data-tip="Shipped as declared" aria-haspopup="dialog">SHIPPED AS</button>
       </div>
     </section>
 
@@ -276,7 +277,7 @@
         </table></div>
       </section>
       <section class="card">
-        <div class="card-head"><h2 class="card-title">Documents</h2><button class="btn btn-outlined sm" data-notbuilt="Upload document"><span class="i mi">upload_file</span>Upload</button></div>
+        <div class="card-head"><h2 class="card-title">Documents</h2><button class="btn btn-outlined sm" id="docs-upload" aria-haspopup="dialog" aria-controls="docs-sheet"><span class="i mi">upload_file</span>Upload</button></div>
         <div class="grid-wrap"><table class="grid">
           <thead><tr><th style="width:130px">Document Type</th><th>Description</th><th style="width:170px">Uploaded At</th><th>Uploaded By</th><th class="col-actions" style="width:48px"><span class="sr-only">Actions</span></th></tr></thead>
           <tbody id="docs-body"></tbody>
@@ -297,7 +298,65 @@
         </table></div>
       </section>
     </div>
+      </div><!-- /#ce-edit-panel -->
+    </div><!-- /tabs + panels -->
   </div>
+
+  <!-- ============ Documents side sheet (Figma 4628:193387 "Document Uploads - Hybrid") ============
+       Header/title/close sized like the Filters sheet (60px, h4, small X). Grey body, containers + divider. -->
+  <aside class="sheet docs-sheet" id="docs-sheet" role="dialog" aria-modal="false" aria-labelledby="docs-sheet-title" hidden>
+    <header class="sheet-head">
+      <h2 class="sheet-title" id="docs-sheet-title">Documents</h2>
+      <button class="icon-btn sm" data-docs-close aria-label="Close documents" data-tip="Close"><i class="fa-solid fa-xmark"></i></button>
+    </header>
+    <div class="sheet-body">
+      <section class="sheet-section">
+        <h3>Add Documents</h3>
+        <label class="dropzone" id="docs-drop">
+          <input type="file" id="docs-file" multiple accept=".pdf,.png,.jpg,.jpeg,.gif,.svg" class="sr-only">
+          <span class="i mi dz-icon">upload_file</span>
+          <span class="dz-text"><span class="dz-link">Link</span> or drag and drop</span>
+          <span class="dz-hint">SVG, PNG, JPG or GIF (max. 3MB)</span>
+        </label>
+        <div class="up-list" id="docs-pending"></div>
+        <div class="up-actions" id="docs-pending-actions" hidden>
+          <button class="btn btn-text sm btn-destructive" id="docs-pending-cancel">Cancel</button>
+          <button class="btn btn-outlined sm" id="docs-attach" disabled>Attach</button>
+        </div>
+      </section>
+
+      <hr class="sheet-divider">
+
+      <section class="sheet-section">
+        <div class="docs-head">
+          <h3>Documents <span class="count-badge" id="docs-count">0</span></h3>
+        </div>
+        <div class="sheet-card sheet-card-table">
+          <div class="docs-toolbar">
+            <div class="docs-search" id="docs-search" hidden><span class="i mi">search</span><input id="docs-q" placeholder="Search documents" aria-label="Search documents"></div>
+            <span class="spacer"></span>
+            <button class="icon-btn sm" id="docs-download" aria-label="Download" data-tip="Download"><span class="i mi">download</span></button>
+            <span class="tb-divider"></span>
+            <button class="icon-btn sm" id="docs-search-btn" aria-label="Search" data-tip="Search" aria-expanded="false"><span class="i mi">search</span></button>
+          </div>
+          <table class="grid docs-grid">
+            <thead><tr>
+              <th class="col-check"><label class="check"><input type="checkbox" id="docs-all" aria-label="Select all documents"><span class="box"></span></label></th>
+              <th>Document Type</th><th>Description</th><th>Uploaded At</th><th>Uploaded By</th>
+              <th class="col-actions" style="width:44px"><span class="sr-only">Actions</span></th>
+            </tr></thead>
+            <tbody id="docs-rows"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+    <footer class="sheet-foot">
+      <button class="btn btn-text" data-docs-close>Close</button>
+      <span class="spacer"></span>
+      <button class="btn btn-outlined" id="docs-save-notify">Save &amp; Send Notification</button>
+      <button class="btn btn-contained" id="docs-save"><span class="i mi">save</span>Save</button>
+    </footer>
+  </aside>
 
   <!-- Sticky action bar (Figma: Frame 15924) -->
   <footer class="action-bar" aria-label="Consignment actions">
@@ -308,7 +367,7 @@
     <div class="split"><button class="btn btn-outlined" data-split-main="print">Print</button><button class="btn btn-outlined split-arrow" data-menu="split-print" aria-label="Print options" aria-haspopup="menu" aria-expanded="false"><span class="i mi">arrow_drop_down</span></button></div>
     <div class="split"><button class="btn btn-outlined" data-split-main="copy">Copy</button><button class="btn btn-outlined split-arrow" data-menu="split-copy" aria-label="Copy options" aria-haspopup="menu" aria-expanded="false"><span class="i mi">arrow_drop_down</span></button></div>
     <button class="btn btn-contained" id="btn-save"><span class="i mi">save</span>Save</button>
-    <button class="icon-btn" data-tip="More actions" data-menu="ce-more" aria-label="More actions"><span class="i mi">more_vert</span></button>
+    <button class="icon-btn icon-btn-outlined" data-tip="More actions" data-menu="ce-more" aria-label="More actions" aria-haspopup="menu" aria-expanded="false"><span class="i mi">more_vert</span></button>
   </footer>
 </main>
 
@@ -505,6 +564,6 @@
 </div>
 <div class="tooltip" id="tooltip" role="tooltip"></div>
 
-<script src="app.js?v=31"></script>
+<script src="app.js?v=51"></script>
 </body>
 </html>

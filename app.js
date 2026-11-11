@@ -142,13 +142,16 @@ const MENUS = {
   'nav-account': [{ label: 'Account customers', ...NB('Account customers') }, { label: 'Credit holds', ...NB('Credit holds') }],
   'nav-claims': [{ label: 'New claim', ...NB('New claim') }, { label: 'Claims register', ...NB('Claims register') }],
   'profile': [{ label: 'Alicia Bidlake', sub: 'Dunedin branch', disabled: true }, { divider: true }, { label: 'My settings', ...NB('My settings') }, { label: 'Sign out', ...NB('Sign out') }],
-  'split-label': [{ label: 'Print labels', ...NB('Label – print labels') }, { label: 'Reprint label', ...NB('Label – reprint label') }, { label: 'Label preview', ...NB('Label – preview') }],
-  'split-print': [{ label: 'Consignment note', ...NB('Print – consignment note') }, { label: 'Delivery docket', ...NB('Print – delivery docket') }, { label: 'Manifest', ...NB('Print – manifest') }, { label: 'POD copy', ...NB('Print – POD copy') }],
-  'split-copy': [{ label: 'Copy consignment', ...NB('Copy – copy consignment') }, { label: 'Copy as return', ...NB('Copy – copy as return') }, { label: 'Save as template', ...NB('Copy – save as template') }],
-  'ce-more': [{ label: 'Save & close', action: () => saveConsignment(true) }, { label: 'View audit trail', ...NB('Audit trail') }, { label: 'Send tracking link', ...NB('Send tracking link') }],
+  // Split button menus per Figma (Group 15674 / 15675)
+  'split-label': [{ label: 'Label', ...NB('Label – print label') }, { label: 'Email Label', ...NB('Label – email label') }],
+  'split-print': [{ label: 'Print Consignment', ...NB('Print – consignment note') }, { label: 'Print DR', ...NB('Print – delivery receipt') }],
+  // Copy options from the legacy copy menu (Figma screenshot 4801:602311)
+  'split-copy': [{ label: 'Full Copy', ...NB('Copy – full copy') }, { label: 'Partial Copy', ...NB('Copy – partial copy') }, { label: 'Reverse Copy', ...NB('Copy – reverse copy') }],
+  // More (⋮) menu per Figma <Action Menu> 4763:189257
+  'ce-more': [{ label: 'Delivery Advise Customer', action: () => openAdviseDialog('delivery', adviseRowsFromConsignment()) }, { label: 'Pickup Advise Customer', action: () => openAdviseDialog('pickup', adviseRowsFromConsignment()) }, { divider: true }, { label: 'Profit Centre', ...NB('Profit centre') }],
 };
 // split-button main actions use their first option as the default
-const SPLIT_DEFAULT = { label: 'Label – print labels', print: 'Print – consignment note', copy: 'Copy – copy consignment' };
+const SPLIT_DEFAULT = { label: 'Label – print label', print: 'Print – consignment note', copy: 'Copy – full copy' };
 
 let openMenuEl = null, openMenuAnchor = null;
 function closeMenu() {
@@ -390,16 +393,16 @@ const fmt = n => (Math.round(n * 1000) / 1000).toLocaleString('en-NZ', { maximum
 function renderItems() {
   $('#items-body').innerHTML = items.map((it, i) => `
     <tr data-i="${i}">
-      <td class="td-edit"><input class="cell-input num" data-f="pieces" value="${it.pieces}" inputmode="numeric" aria-label="Pieces, row ${i + 1}"></td>
-      <td class="td-edit"><select class="cell-input cell-select" data-f="type" aria-label="Type, row ${i + 1}">${ITEM_TYPES.map(t => `<option ${t === it.type ? 'selected' : ''}>${t}</option>`).join('')}</select></td>
-      <td class="td-edit"><input class="cell-input" data-f="desc" value="${esc(it.desc)}" aria-label="Description, row ${i + 1}"></td>
-      ${['kg', 'l', 'w', 'h', 'vol'].map(f => `<td class="td-edit"><input class="cell-input num" data-f="${f}" value="${it[f]}" inputmode="decimal" aria-label="${{ kg: 'W-KG', l: 'Length-M', w: 'Width-M', h: 'Height-M', vol: 'VOL-M3' }[f]}, row ${i + 1}"></td>`).join('')}
-      <td class="num" data-out="charge">${fmt(it.charge)}</td>
+      <td class="td-edit"><input class="cell-input num" data-f="pieces" value="${it.pieces}" placeholder="Enter…" inputmode="numeric" aria-label="Pieces, row ${i + 1}"></td>
+      <td class="td-edit"><select class="cell-input cell-select${it.type ? '' : ' is-empty'}" data-f="type" aria-label="Type, row ${i + 1}"><option value="" disabled hidden ${it.type ? '' : 'selected'}>Select…</option>${ITEM_TYPES.map(t => `<option ${t === it.type ? 'selected' : ''}>${t}</option>`).join('')}</select></td>
+      <td class="td-edit"><input class="cell-input" data-f="desc" value="${esc(it.desc)}" placeholder="Enter…" aria-label="Description, row ${i + 1}"></td>
+      ${['kg', 'l', 'w', 'h', 'vol'].map(f => `<td class="td-edit"><input class="cell-input num" data-f="${f}" value="${it[f]}" placeholder="Enter…" inputmode="decimal" aria-label="${{ kg: 'W-KG', l: 'Length-M', w: 'Width-M', h: 'Height-M', vol: 'VOL-M3' }[f]}, row ${i + 1}"></td>`).join('')}
+      <td class="num" data-out="charge">${it.charge === '' ? '<span class="muted">—</span>' : fmt(it.charge)}</td>
       <td class="center"><label class="check"><input type="checkbox" data-f="stack" ${it.stack ? 'checked' : ''} aria-label="Stackable, row ${i + 1}"><span class="box"></span></label></td>
-      <td class="td-edit"><input class="cell-input num" data-f="un" value="${esc(it.un)}" aria-label="UN number, row ${i + 1}"></td>
-      <td class="td-edit"><input class="cell-input" data-f="dg" value="${esc(it.dg)}" aria-label="DG class, row ${i + 1}"></td>
-      <td class="td-edit"><input class="cell-input num" data-f="sub" value="${esc(it.sub)}" aria-label="Sub risk, row ${i + 1}"></td>
-      <td class="col-actions"><button class="icon-btn sm" data-del-item="${i}" data-tip="Delete item" aria-label="Delete item ${i + 1}"><span class="i mi">delete</span></button></td>
+      <td class="td-edit"><input class="cell-input num" data-f="un" value="${esc(it.un)}" placeholder="Enter…" aria-label="UN number, row ${i + 1}"></td>
+      <td class="td-edit"><input class="cell-input" data-f="dg" value="${esc(it.dg)}" placeholder="Enter…" aria-label="DG class, row ${i + 1}"></td>
+      <td class="td-edit"><input class="cell-input num" data-f="sub" value="${esc(it.sub)}" placeholder="Enter…" aria-label="Sub risk, row ${i + 1}"></td>
+      <td class="col-actions"><button class="icon-btn sm" data-item-details="${i}" data-tip="Item details" aria-label="Item details, row ${i + 1}"><span class="i mi">list_alt</span></button><button class="icon-btn sm" data-del-item="${i}" data-tip="Delete item" aria-label="Delete item ${i + 1}"><span class="i mi">delete</span></button></td>
     </tr>`).join('') || `<tr class="empty"><td colspan="14">No items. Use ADD to add one.</td></tr>`;
   renderTotals();
 }
@@ -429,21 +432,23 @@ $('#items-body').addEventListener('input', e => {
   dirty = true;
 });
 $('#items-body').addEventListener('change', e => { if (e.target.type === 'checkbox' || e.target.tagName === 'SELECT') $('#items-body').dispatchEvent(new Event('input', { bubbles: true })) || null; });
+$('#items-body').addEventListener('change', e => { if (e.target.matches('.cell-select')) e.target.classList.toggle('is-empty', !e.target.value); });
 $('#items-body').addEventListener('click', e => {
+  const d = e.target.closest('[data-item-details]'); if (d) { hideTip(); return openItemDetails(+d.dataset.itemDetails); }
   const b = e.target.closest('[data-del-item]'); if (!b) return;
   const i = +b.dataset.delItem, removed = items[i];
   items.splice(i, 1); renderItems(); hideTip(); dirty = true;
   snack('Item deleted', { action: 'Undo', onAction: () => { items.splice(i, 0, removed); renderItems(); } });
 });
 $('#add-item').addEventListener('click', () => {
-  items.push({ pieces: 1, type: 'ITEM-Item', desc: '', kg: 0, l: 0, w: 0, h: 0, vol: 0, charge: 0, stack: false, un: '', dg: '', sub: '' });
+  items.push({ pieces: '', type: '', desc: '', kg: '', l: '', w: '', h: '', vol: '', charge: '', stack: false, un: '', dg: '', sub: '' });
   renderItems(); dirty = true;
   const rows = $$('#items-body tr'); $('[data-f="desc"]', rows[rows.length - 1]).focus();
 });
 renderItems();
 
 // Toggle chips
-$$('.chip.toggle').forEach(c => c.addEventListener('click', () => { c.setAttribute('aria-pressed', String(c.getAttribute('aria-pressed') !== 'true')); dirty = true; }));
+$$('.chip.toggle[data-extra]').forEach(c => c.addEventListener('click', () => openExtraDialog(c.dataset.extra)));
 
 // Documents & references
 let docs = [
@@ -708,6 +713,7 @@ document.addEventListener('click', e => {
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-bulk]'); if (!b) return;
   if (PRINT_DOCS[b.dataset.bulk]) return openPrintDialog(b.dataset.bulk);
+  if (b.dataset.bulk === 'Advise customer') return openAdviseDialog('pickup', adviseRowsFromJobs());
   notBuilt(`${b.dataset.bulk} – ${sel.size} selected job${sel.size > 1 ? 's' : ''}`);
 });
 
@@ -1255,6 +1261,474 @@ renderZones(); renderJobs(); renderDrivers();
   }, { passive: true });
   bar.addEventListener('focusin', () => bar.classList.remove('nav-hidden'));
 })();
+
+/* Call required → enables its Details button */
+$$('.call-required').forEach(cb => cb.addEventListener('change', () => {
+  const btn = cb.closest('.call-row').querySelector('.call-details');
+  btn.disabled = !cb.checked;
+  btn.toggleAttribute('data-tip', !cb.checked);
+  if (!cb.checked) btn.setAttribute('data-tip', 'Tick Call required to add call details');
+}));
+$$('.call-details').forEach(b => b.setAttribute('data-tip', 'Tick Call required to add call details'));
+
+/* Date / time fields: calendar (or clock) icon button in the right-hand slot opens the picker */
+$$('.field > input.ctl[type="date"], .field > input.ctl[type="datetime-local"], .field > input.ctl[type="time"]').forEach(input => {
+  const field = input.parentElement, isTime = input.type === 'time';
+  field.classList.add('has-end', 'date-field');
+  const btn = document.createElement('button');
+  btn.type = 'button'; btn.className = 'icon-btn sm';
+  btn.setAttribute('aria-label', isTime ? 'Choose time' : 'Choose date');
+  btn.setAttribute('data-tip', isTime ? 'Choose time' : 'Choose date');
+  btn.innerHTML = `<span class="i mi">${isTime ? 'schedule' : 'calendar_today'}</span>`;
+  btn.addEventListener('click', () => { if (input.disabled) return; input.focus(); try { input.showPicker(); } catch (e) { /* older browsers: focus is enough */ } });
+  const end = document.createElement('span'); end.className = 'adorn-end'; end.appendChild(btn);
+  field.insertBefore(end, input.nextSibling);
+  const sync = () => { btn.disabled = input.disabled; };
+  sync(); new MutationObserver(sync).observe(input, { attributes: true, attributeFilter: ['disabled'] });
+});
+
+/* =====================================================================
+   Documents side sheet (Figma 4628:193387) — upload, type, attach, manage
+   Edits happen on a working copy; Save writes back to the Documents card.
+   ===================================================================== */
+const DOC_TYPES = ['Proof of Delivery', 'Bill of Lading', 'Commercial Invoice', 'Packing List', 'Dangerous Goods Declaration', 'Photo', 'Other'];
+const REQUIRED_DOCS = ['Proof of Delivery', 'Bill of Lading', 'Commercial Invoice'];
+const docsSheet = $('#docs-sheet');
+let docsWork = [], docsPending = [], docsDirty = false, docsQuery = '', pendingId = 0;
+const nowStamp = () => new Date().toLocaleString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit' }).replace(',', '');
+const fmtSize = b => b < 1024 ? b + ' B' : b < 1048576 ? Math.round(b / 1024) + ' KB' : (b / 1048576).toFixed(1) + ' MB';
+
+function renderDocsSheet() {
+  // Pending uploads
+  $('#docs-pending').innerHTML = docsPending.map(p => `<div class="up-item${p.error ? ' error' : ''}" data-pid="${p.id}">
+      <span class="i i-md mi up-icon">${p.error ? 'error_outline' : 'description'}</span>
+      <div class="up-info"><div class="up-name" title="${esc(p.name)}">${esc(p.name)}</div>
+        <div class="up-meta">${p.error ? `<span class="up-err">${esc(p.error)}</span>` : `${fmtSize(p.size)} <span class="dot">•</span> ${p.progress < 100 ? 'Uploading…' : p.type ? 'Ready to attach' : 'Select document type'}`}</div>
+        ${!p.error && p.progress < 100 ? `<div class="up-bar"><span style="width:${p.progress}%"></span></div>` : ''}</div>
+      ${p.error ? '' : `<div class="field select${p.type ? ' filled' : ''} up-type"><select class="ctl" data-ptype="${p.id}" aria-label="Document type for ${esc(p.name)}" ${p.progress < 100 ? 'disabled' : ''}><option value="" disabled hidden ${p.type ? '' : 'selected'}></option>${DOC_TYPES.map(t => `<option ${t === p.type ? 'selected' : ''}>${t}</option>`).join('')}</select><label>Select document type…</label></div>`}
+      <button class="icon-btn sm" data-premove="${p.id}" aria-label="Remove ${esc(p.name)}" data-tip="Remove file"><span class="i mi">remove</span></button>
+    </div>`).join('');
+  const ready = docsPending.filter(p => !p.error);
+  $('#docs-pending-actions').hidden = !docsPending.length;
+  $('#docs-attach').disabled = !ready.length || ready.some(p => p.progress < 100 || !p.type);
+  $('#docs-attach').toggleAttribute('data-tip', $('#docs-attach').disabled);
+  if ($('#docs-attach').disabled) $('#docs-attach').setAttribute('data-tip', 'Choose a document type for each file');
+
+  // Documents grid
+  const q = docsQuery.toLowerCase();
+  const rows = docsWork.map((d, i) => ({ d, i })).filter(({ d }) => !q || [d.type, d.desc, d.by].join(' ').toLowerCase().includes(q));
+  $('#docs-rows').innerHTML = rows.map(({ d, i }) => `<tr class="${d.sel ? 'selected' : ''}">
+      <td class="col-check"><label class="check"><input type="checkbox" data-dsel="${i}" ${d.sel ? 'checked' : ''} aria-label="Select ${esc(d.desc)}"><span class="box"></span></label></td>
+      <td>${esc(d.type)}${REQUIRED_DOCS.includes(d.type) ? ' <span class="req-chip">Required</span>' : ''}</td>
+      <td class="trunc" style="max-width:170px"><a class="cell-link" style="text-decoration:underline" href="#" data-notbuilt="Document viewer – ${esc(d.desc)}" title="${esc(d.desc)}">${esc(d.desc)}</a></td>
+      <td>${esc(d.at)}</td>
+      <td class="trunc" style="max-width:170px" title="${esc(d.by)}">${esc(d.by)}</td>
+      <td class="col-actions"><button class="icon-btn sm" data-ddel="${i}" aria-label="Delete ${esc(d.desc)}" data-tip="Delete document"><span class="i mi">delete</span></button></td></tr>`).join('')
+    || `<tr class="empty"><td colspan="6">${q ? 'No documents match your search.' : 'No documents yet. Add one above.'}</td></tr>`;
+  const vis = rows.length, visSel = rows.filter(r => r.d.sel).length, all = $('#docs-all');
+  all.checked = vis > 0 && visSel === vis; all.indeterminate = visSel > 0 && visSel < vis;
+  $('#docs-count').textContent = docsWork.length;
+  $$('.field', docsSheet).forEach(syncFilled);
+}
+
+function addFiles(fileList) {
+  [...fileList].forEach(f => {
+    const ok = /\.(pdf|png|jpe?g|gif|svg)$/i.test(f.name), big = f.size > 3 * 1048576;
+    const p = { id: ++pendingId, name: f.name, size: f.size, type: '', progress: 0, error: !ok ? 'File type not supported' : big ? 'File is over 3MB' : '' };
+    docsPending.push(p);
+    if (!p.error) {
+      const tick = () => { p.progress = Math.min(100, p.progress + 25); renderDocsSheet(); if (p.progress < 100) setTimeout(tick, 180); };
+      setTimeout(tick, 120);
+    }
+  });
+  renderDocsSheet();
+}
+
+function openDocsSheet(draft) {
+  docsWork = draft ? draft.work : docs.map(d => ({ ...d }));
+  docsPending = draft ? draft.pending : [];
+  docsDirty = !!draft; docsQuery = '';
+  $('#docs-q').value = ''; $('#docs-search').hidden = true; $('#docs-search-btn').setAttribute('aria-expanded', 'false');
+  renderDocsSheet();
+  docsSheet.hidden = false;
+  requestAnimationFrame(() => docsSheet.classList.add('open'));
+  $('#docs-upload').setAttribute('aria-expanded', 'true');
+  $('#docs-file').focus();
+}
+function closeDocsSheet({ save = false, notify = false } = {}) {
+  if (save) {
+    docs = docsWork.map(({ sel, ...d }) => d); renderDocs(); dirty = true;
+    const n = docs.length;
+    snack(notify ? `Documents saved and customer notified (${n} document${n === 1 ? '' : 's'})` : `Documents saved (${n} document${n === 1 ? '' : 's'})`);
+  } else if (docsDirty || docsPending.length) {
+    const draft = { work: docsWork, pending: docsPending.filter(p => p.progress >= 100 || p.error) };
+    snack('Document changes not saved', { action: 'Reopen', onAction: () => openDocsSheet(draft) });
+  }
+  docsSheet.classList.remove('open');
+  $('#docs-upload').setAttribute('aria-expanded', 'false');
+  setTimeout(() => { if (!docsSheet.classList.contains('open')) docsSheet.hidden = true; }, 250);
+  $('#docs-upload').focus();
+}
+
+$('#docs-upload').addEventListener('click', () => openDocsSheet());
+$$('[data-docs-close]', docsSheet).forEach(b => b.addEventListener('click', () => closeDocsSheet()));
+docsSheet.addEventListener('keydown', e => { if (e.key === 'Escape' && !openMenuEl) closeDocsSheet(); });
+$('#docs-save').addEventListener('click', () => closeDocsSheet({ save: true }));
+$('#docs-save-notify').addEventListener('click', () => closeDocsSheet({ save: true, notify: true }));
+$('#docs-file').addEventListener('change', e => { addFiles(e.target.files); e.target.value = ''; });
+const drop = $('#docs-drop');
+['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('drag'); }));
+['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('drag'); }));
+drop.addEventListener('drop', e => { if (e.dataTransfer && e.dataTransfer.files.length) addFiles(e.dataTransfer.files); });
+$('#docs-pending').addEventListener('change', e => {
+  const id = e.target.dataset.ptype; if (!id) return;
+  docsPending.find(p => p.id === +id).type = e.target.value; renderDocsSheet();
+});
+$('#docs-pending').addEventListener('click', e => {
+  const b = e.target.closest('[data-premove]'); if (!b) return;
+  docsPending = docsPending.filter(p => p.id !== +b.dataset.premove); hideTip(); renderDocsSheet();
+});
+$('#docs-pending-cancel').addEventListener('click', () => { docsPending = []; renderDocsSheet(); });
+$('#docs-attach').addEventListener('click', () => {
+  const ready = docsPending.filter(p => !p.error);
+  ready.forEach(p => docsWork.push({ type: p.type, desc: p.name.replace(/\.[^.]+$/, ''), at: nowStamp(), by: 'Alicia Bidlake' }));
+  docsPending = []; docsDirty = true; renderDocsSheet();
+  snack(`${ready.length} document${ready.length > 1 ? 's' : ''} attached`);
+});
+$('#docs-rows').addEventListener('change', e => { const i = e.target.dataset.dsel; if (i !== undefined) { docsWork[+i].sel = e.target.checked; renderDocsSheet(); } });
+$('#docs-rows').addEventListener('click', e => {
+  const b = e.target.closest('[data-ddel]'); if (!b) return;
+  const i = +b.dataset.ddel, removed = docsWork[i];
+  docsWork.splice(i, 1); docsDirty = true; hideTip(); renderDocsSheet();
+  snack(`${removed.desc} removed`, { action: 'Undo', onAction: () => { docsWork.splice(i, 0, removed); renderDocsSheet(); } });
+});
+$('#docs-all').addEventListener('change', e => { docsWork.forEach(d => { d.sel = e.target.checked; }); renderDocsSheet(); });
+$('#docs-download').addEventListener('click', () => {
+  const n = docsWork.filter(d => d.sel).length || docsWork.length;
+  snack(n ? `Downloading ${n} document${n > 1 ? 's' : ''}` : 'No documents to download');
+});
+$('#docs-search-btn').addEventListener('click', () => {
+  const box = $('#docs-search'), open = box.hidden;
+  box.hidden = !open; $('#docs-search-btn').setAttribute('aria-expanded', String(open));
+  if (open) $('#docs-q').focus(); else { docsQuery = ''; $('#docs-q').value = ''; renderDocsSheet(); }
+});
+$('#docs-q').addEventListener('input', e => { docsQuery = e.target.value.trim(); renderDocsSheet(); });
+
+/* =====================================================================
+   Item extras under the items grid (legacy dialogs, Figma 4803:603432–603435)
+   STC · HIRE · SHIPPED AS → editable-grid dialogs; Item details → per item line.
+   ONE DS: Dialog (sm/md) · DataGrid inline editing (28px cell inputs, Enter…/Select… placeholders,
+   required = red bar) · "Add row" text button · Modal Footer: Ghost Cancel left, Primary Save right
+   (legacy "OK" → "Save": ONE DS Button Labels avoid OK).
+   ===================================================================== */
+const HIRE_COMPANIES = ['CHEP', 'Loscam', 'PalletPlus'];
+const HIRE_ACCOUNTS = { CHEP: 'CHEP 4021987 – MCRMIMME', Loscam: 'LOS 118 204 – MCRMIMME', PalletPlus: 'PP 77 0193 – MCRMIMME' };
+const EXTRAS = {
+  stc: { title: 'Said to Contain (STC)', size: 'sm', noun: 'line', columns: [
+    { key: 'pieces', label: 'Pieces', type: 'number', width: 90 },
+    { key: 'type', label: 'Type', type: 'select', options: () => ITEM_TYPES, width: 150 },
+    { key: 'desc', label: 'Description', type: 'text' }] },
+  shipped: { title: 'Shipped As', size: 'sm', noun: 'line', columns: [
+    { key: 'pieces', label: 'Pieces', type: 'number', width: 90 },
+    { key: 'type', label: 'Type', type: 'select', options: () => ITEM_TYPES, width: 150 },
+    { key: 'desc', label: 'Description', type: 'text' }] },
+  hire: { title: 'Hire', size: 'md', noun: 'hire line', columns: [
+    { key: 'company', label: 'Company', type: 'select', required: true, options: () => HIRE_COMPANIES, width: 120 },
+    { key: 'txn', label: 'Transaction type', type: 'select', required: true, options: () => ['Transfer in', 'Transfer out', 'Hire'], width: 140 },
+    { key: 'from', label: 'From account', type: 'readonly', value: r => HIRE_ACCOUNTS[r.company] || '' },
+    { key: 'to', label: 'To account', type: 'text', required: true },
+    { key: 'pallet', label: 'Pallet type', type: 'select', required: true, options: () => ['Standard 1165 × 1165', 'Half pallet', 'Euro 1200 × 800'], width: 160 },
+    { key: 'qty', label: 'Quantity', type: 'number', required: true, width: 90 }] },
+};
+const extrasData = { stc: [], shipped: [], hire: [] };
+
+function syncExtraChips() {
+  $$('.chip.toggle[data-extra]').forEach(c => {
+    const n = extrasData[c.dataset.extra].length, base = { stc: 'STC', hire: 'HIRE', shipped: 'SHIPPED AS' }[c.dataset.extra];
+    c.textContent = n ? `${base} (${n})` : base;
+    c.setAttribute('aria-pressed', String(!!n));
+  });
+}
+
+function openExtraDialog(key) {
+  const cfg = EXTRAS[key];
+  let rows = extrasData[key].map(r => ({ ...r }));
+  if (!rows.length) rows.push({});
+  const isEmpty = r => cfg.columns.every(c => c.type === 'readonly' || r[c.key] === undefined || r[c.key] === '');
+  const bd = dialog({
+    title: cfg.title, size: cfg.size, confirm: 'Save', cancel: 'Cancel',
+    body: `<div class="xg-table"><table class="grid xg-grid">
+        <thead><tr>${cfg.columns.map(c => `<th class="${c.type === 'number' ? 'num' : ''}" ${c.width ? `style="width:${c.width}px"` : ''}>${c.label}${c.required ? '<span class="req-star">*</span>' : ''}</th>`).join('')}<th class="col-actions" style="width:40px"><span class="sr-only">Actions</span></th></tr></thead>
+        <tbody></tbody></table></div>
+      <div class="xg-foot"><span class="aw-warn" id="xg-warn" hidden></span><span class="spacer"></span><button class="btn btn-text sm" data-xg-add><span class="i mi">add</span>Add row</button></div>`,
+    onConfirm: bd => {
+      const keep = rows.filter(r => !isEmpty(r));
+      let bad = 0;
+      $$('tbody tr', bd).forEach((tr, i) => {
+        if (isEmpty(rows[i])) return;
+        cfg.columns.forEach(c => {
+          if (!c.required) return;
+          const el = $(`[data-k="${c.key}"]`, tr), miss = !rows[i][c.key];
+          el.classList.toggle('invalid', miss); el.setAttribute('aria-invalid', String(miss)); if (miss) bad++;
+        });
+      });
+      if (bad) { const w = $('#xg-warn', bd); w.hidden = false; w.innerHTML = `<span class="i mi">warning_amber</span>Fill in the ${bad} highlighted cell${bad > 1 ? 's' : ''}`; return false; }
+      extrasData[key] = keep; syncExtraChips(); dirty = true;
+      snack(keep.length ? `${cfg.title}: ${keep.length} ${cfg.noun}${keep.length > 1 ? 's' : ''} saved` : `${cfg.title} cleared`);
+    },
+  });
+  const tbody = $('tbody', bd);
+  const render = focusRow => {
+    tbody.innerHTML = rows.map((r, i) => `<tr>${cfg.columns.map(c => {
+      const req = c.required ? ' req' : '', aria = `aria-label="${c.label}, row ${i + 1}"`;
+      if (c.type === 'readonly') return `<td class="xg-ro">${esc(c.value(r)) || '<span class="muted">—</span>'}</td>`;
+      if (c.type === 'select') return `<td class="td-edit"><select class="cell-input cell-select${req}${r[c.key] ? '' : ' is-empty'}" data-k="${c.key}" ${aria}><option value="" disabled hidden ${r[c.key] ? '' : 'selected'}>Select…</option>${c.options().map(o => `<option ${o === r[c.key] ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select></td>`;
+      return `<td class="td-edit"><input class="cell-input${c.type === 'number' ? ' num' : ''}${req}" data-k="${c.key}" ${c.type === 'number' ? 'inputmode="numeric"' : ''} value="${esc(r[c.key] ?? '')}" placeholder="Enter…" ${aria}></td>`;
+    }).join('')}<td class="col-actions"><button class="icon-btn sm" data-xg-del="${i}" aria-label="Delete row ${i + 1}" data-tip="Delete row"><span class="i mi">delete</span></button></td></tr>`).join('')
+      || `<tr class="empty"><td colspan="${cfg.columns.length + 1}">No rows. Use Add row to add one.</td></tr>`;
+    if (focusRow !== undefined) { const f = $(`tbody tr:nth-child(${focusRow + 1}) .cell-input`, bd); if (f) f.focus(); }
+  };
+  tbody.addEventListener('input', e => {
+    const tr = e.target.closest('tr'), i = [...tbody.children].indexOf(tr), k = e.target.dataset.k; if (!k) return;
+    rows[i][k] = e.target.value; e.target.classList.remove('invalid');
+    if (e.target.tagName === 'SELECT') e.target.classList.toggle('is-empty', !e.target.value);
+    if (key === 'hire' && k === 'company') render();   // From account follows the company
+  });
+  tbody.addEventListener('change', e => tbody.dispatchEvent(new Event('input', { bubbles: true })) && 0);
+  tbody.addEventListener('click', e => { const b = e.target.closest('[data-xg-del]'); if (b) { rows.splice(+b.dataset.xgDel, 1); hideTip(); render(); } });
+  $('[data-xg-add]', bd).addEventListener('click', () => { rows.push({}); render(rows.length - 1); });
+  render();
+}
+
+function openItemDetails(index) {
+  const it = items[index], n = Math.max(1, parseInt(it.pieces, 10) || 1);
+  if (!it.details) it.details = [...Array(n)].map((_, k) => ({ no: `FWM62085911-${String(index * 100 + k + 1).padStart(4, '0')}`, sscc: '', cust: '' }));
+  let rows = it.details.map(r => ({ ...r })), filter = '';
+  const heading = `${it.pieces || 0} ${it.type || 'Item'}${it.desc ? ' – ' + it.desc : ''}`;
+  const bd = dialog({
+    title: 'Item Details', size: 'md', confirm: 'Save', cancel: 'Cancel',
+    body: `<div class="id-search">
+        <div class="field has-start"><span class="adorn-start"><span class="i mi">search</span></span><input class="ctl" id="id-q" autocomplete="off"><label for="id-q">Item number</label></div>
+      </div>
+      <h3 class="aw-h id-head">${esc(heading)}</h3>
+      <div class="xg-bulk" id="id-bulk" hidden><span id="id-count"></span><span class="spacer"></span><button class="btn btn-outlined sm btn-destructive" id="id-del-sel">Delete</button></div>
+      <div class="xg-table"><table class="grid xg-grid">
+        <thead><tr><th class="col-check"><label class="check"><input type="checkbox" id="id-all" aria-label="Select all items"><span class="box"></span></label></th><th style="width:200px">Item number</th><th>SSCC</th><th>Customer item #</th><th class="col-actions" style="width:40px"><span class="sr-only">Actions</span></th></tr></thead>
+        <tbody></tbody></table></div>
+      <div class="xg-foot"><span class="spacer"></span><button class="btn btn-text sm" id="id-add"><span class="i mi">add</span>Add item</button></div>`,
+    onConfirm: () => { it.details = rows.map(({ sel: _s, ...r }) => r); dirty = true; snack(`Item details saved for ${rows.length} item${rows.length === 1 ? '' : 's'}`); },
+  });
+  const tbody = $('tbody', bd);
+  const visible = () => rows.map((r, i) => ({ r, i })).filter(({ r }) => !filter || r.no.toLowerCase().includes(filter));
+  const render = () => {
+    const vis = visible();
+    tbody.innerHTML = vis.map(({ r, i }) => `<tr class="${r.sel ? 'selected' : ''}">
+      <td class="col-check"><label class="check"><input type="checkbox" data-id-sel="${i}" ${r.sel ? 'checked' : ''} aria-label="Select ${esc(r.no)}"><span class="box"></span></label></td>
+      <td>${esc(r.no)}</td>
+      <td class="td-edit"><input class="cell-input" data-id-k="sscc" data-i="${i}" value="${esc(r.sscc)}" placeholder="Enter…" aria-label="SSCC for ${esc(r.no)}"></td>
+      <td class="td-edit"><input class="cell-input" data-id-k="cust" data-i="${i}" value="${esc(r.cust)}" placeholder="Enter…" aria-label="Customer item number for ${esc(r.no)}"></td>
+      <td class="col-actions"><button class="icon-btn sm" data-id-del="${i}" aria-label="Delete ${esc(r.no)}" data-tip="Delete item"><span class="i mi">delete</span></button></td></tr>`).join('')
+      || `<tr class="empty"><td colspan="5">${filter ? 'No items match that number.' : 'No items. Use Add item to add one.'}</td></tr>`;
+    const selN = rows.filter(r => r.sel).length, visSel = vis.filter(v => v.r.sel).length, all = $('#id-all', bd);
+    all.checked = vis.length > 0 && visSel === vis.length; all.indeterminate = visSel > 0 && visSel < vis.length;
+    $('#id-bulk', bd).hidden = !selN; $('#id-count', bd).textContent = `${selN} selected`;
+  };
+  $('#id-q', bd).addEventListener('input', e => { filter = e.target.value.trim().toLowerCase(); syncFilled(e.target.closest('.field')); render(); });
+  tbody.addEventListener('input', e => { const k = e.target.dataset.idK; if (k) rows[+e.target.dataset.i][k] = e.target.value; });
+  tbody.addEventListener('change', e => { const s = e.target.dataset.idSel; if (s !== undefined) { rows[+s].sel = e.target.checked; render(); } });
+  tbody.addEventListener('click', e => { const b = e.target.closest('[data-id-del]'); if (b) { rows.splice(+b.dataset.idDel, 1); hideTip(); render(); } });
+  $('#id-all', bd).addEventListener('change', e => { visible().forEach(({ r }) => { r.sel = e.target.checked; }); render(); });
+  $('#id-del-sel', bd).addEventListener('click', () => { const n = rows.filter(r => r.sel).length; rows = rows.filter(r => !r.sel); render(); snack(`${n} item${n > 1 ? 's' : ''} removed`); });
+  $('#id-add', bd).addEventListener('click', () => {
+    const next = rows.reduce((m, r) => Math.max(m, parseInt(r.no.split('-').pop(), 10) || 0), index * 100) + 1;
+    rows.push({ no: `FWM62085911-${String(next).padStart(4, '0')}`, sscc: '', cust: '' });
+    filter = ''; $('#id-q', bd).value = ''; syncFilled($('#id-q', bd).closest('.field')); render();
+    const inputs = $$('[data-id-k="sscc"]', tbody); inputs[inputs.length - 1].focus();
+  });
+  render();
+}
+
+/* =====================================================================
+   Advise Customer (legacy "Home Pickup Customer Notification", Figma group 4801:602319)
+   ONE DS: Dialog md (900) with dividers · Tabs (System / Manual) · DataGrid (recipients) ·
+   Select + Radio (Transport: 2 options → Radio) · Multiline · Modal Footer "Extended":
+   Ghost Cancel left; Secondary "Confirm without sending" + Primary "Send" right.
+   ===================================================================== */
+const ADVISE_TEMPLATES = {
+  pickup: ['Pickup Window Booking Request', 'Pickup Reminder', 'Pickup Missed – Rebook'],
+  delivery: ['Delivery Window Booking Request', 'Delivery Day Notice', 'Delivery Missed – Rebook'],
+};
+const ADVISE_OVERRIDES = ['None', 'Residential', 'Hiab required', 'After hours'];
+const adviseMessage = kind => `Hi, Mainfreight here:
+Your <Customer Name> ${kind === 'pickup' ? 'return' : 'order'} (<Tracking Number>) is ready to be organised.
+<Consignment Data Table>
+Please confirm a ${kind} date and time via the link: <URL>
+
+Need help? Call your local Mainfreight ${kind === 'pickup' ? 'Pickup' : 'Delivery'} Team <Branch Phone Number>.
+
+If this ${kind === 'pickup' ? 'collection' : 'delivery'} is no longer required, please let us know either via call or email us at <Customer Service Email>. Thank you!
+
+PLEASE DO NOT REPLY DIRECTLY TO THIS AUTOMATED MESSAGE`;
+
+function adviseRowsFromJobs() {
+  return jobsFor(zone).filter(j => sel.has(j.id)).map((j, i) => ({
+    con: j.con, customer: j.carrier, sender: j.carrier, receiver: j.del[0],
+    phone: i % 3 === 2 ? '' : '+64 21 ' + String(4392298 + i * 1371).slice(0, 3) + ' ' + String(4392298 + i * 1371).slice(3),
+    email: i % 2 ? 'orders@' + j.del[0].split(' ')[0].toLowerCase() + '.co.nz' : '',
+    qty: 1, weight: j.kg, cube: j.m,
+  }));
+}
+function adviseRowsFromConsignment() {
+  return [{ con: 'FWM62085911', customer: 'MCRMIMME', sender: 'MAINDC - COURIER', receiver: 'OCEANA GOLD', phone: '03 455 1009', email: '', qty: items.length,
+    weight: items.reduce((a, it) => a + (+it.kg || 0), 0), cube: items.reduce((a, it) => a + (+it.vol || 0), 0) }];
+}
+
+function openAdviseDialog(kind, rows) {
+  const zoneName = zone.toUpperCase(), K = kind === 'pickup' ? 'Pickup' : 'Delivery';
+  const startDate = new Date(($('#flt-date').value || '2026-06-10') + 'T00:00:00');
+  let weekOffset = 0, mode = 'system';
+  const windowsByDate = {}; // 'YYYY-MM-DD' → [{from,to,editing}]
+  const iso = d => d.toISOString().slice(0, 10);
+  const winsFor = d => {
+    const k = iso(d);
+    if (!windowsByDate[k]) windowsByDate[k] = (d.getDay() === 0 || d.getDay() === 6) ? [] : [{ from: '09:00', to: '17:00' }];
+    return windowsByDate[k];
+  };
+
+  const bd = dialog({
+    title: `${K} Customer Notification`, size: 'md', confirm: 'Send', cancel: 'Cancel',
+    extra: '<button class="btn btn-outlined" data-confirm-only>Confirm without sending</button>',
+    body: `
+      <p class="pd-sub" id="aw-sub"></p>
+      <div class="tabs pd-tabs" role="tablist" aria-label="Message type">
+        <button class="tab" role="tab" aria-selected="true" data-aw-tab="system">System</button>
+        <button class="tab" role="tab" aria-selected="false" data-aw-tab="manual">Manual</button>
+      </div>
+
+      <section class="aw-section">
+        <h3 class="aw-h">Consignments</h3>
+        <div class="aw-table"><table class="grid">
+          <thead><tr><th>Consignment</th><th>Customer</th><th>Sender</th><th>Receiver</th><th>Phone</th><th>Email</th><th class="num">CN qty</th><th class="num">Weight</th><th class="num">Cube</th><th class="col-actions" style="width:44px"><span class="sr-only">Actions</span></th></tr></thead>
+          <tbody id="aw-rows"></tbody>
+        </table></div>
+        <div class="aw-warn" id="aw-warn" hidden></div>
+      </section>
+
+      <section class="aw-section">
+        <h3 class="aw-h">Message</h3>
+        <div class="aw-msg-row aw-system">
+          <div class="field select required filled aw-system"><select class="ctl" id="aw-template">${ADVISE_TEMPLATES[kind].map(t => `<option>${esc(t)}</option>`).join('')}</select><label for="aw-template">Template<span class="req-star">*</span></label></div>
+          <div class="field select filled aw-system"><select class="ctl" id="aw-override">${ADVISE_OVERRIDES.map(t => `<option>${esc(t)}</option>`).join('')}</select><label for="aw-override">Template override</label></div>
+          <fieldset class="aw-transport aw-system"><legend>Transport</legend>
+            <label class="check radio"><input type="radio" name="aw-transport" value="SMS" checked><span class="box"></span>SMS</label>
+            <label class="check radio"><input type="radio" name="aw-transport" value="Email"><span class="box"></span>Email</label>
+          </fieldset>
+        </div>
+        <div class="field always-float required"><textarea class="ctl" id="aw-message" rows="9"></textarea><label for="aw-message">Message<span class="req-star">*</span></label><div class="helper" id="aw-count"></div></div>
+      </section>
+
+      <section class="aw-section aw-system" id="aw-windows">
+        <div class="aw-days-head">
+          <h3 class="aw-h">${K} windows for zone ${esc(zoneName)}</h3>
+          <div class="aw-week-nav">
+            <button class="icon-btn sm" data-week="-1" aria-label="Previous week" data-tip="Previous week"><span class="i mi">chevron_left</span></button>
+            <span class="caption muted" id="aw-range"></span>
+            <button class="icon-btn sm" data-week="1" aria-label="Next week" data-tip="Next week"><span class="i mi">chevron_right</span></button>
+          </div>
+        </div>
+        <div class="aw-days" id="aw-days"></div>
+      </section>`,
+    onConfirm: bd => {
+      if (!rows.length) { showWarn('Add at least one consignment to send a notification.'); return false; }
+      const msgField = $('#aw-message', bd).closest('.field');
+      if (!$('#aw-message', bd).value.trim()) { validateField(msgField); $('#aw-message', bd).focus(); return false; }
+      const by = $('input[name="aw-transport"]:checked', bd).value;
+      if (mode === 'manual') {
+        const none = rows.filter(r => !r.phone && !r.email).length;
+        if (none) { showWarn(`${none} customer${none > 1 ? 's have' : ' has'} no phone number or email address. Remove ${none > 1 ? 'them' : 'it'} to send.`); return false; }
+        snack(`Message sent to ${rows.length} customer${rows.length > 1 ? 's' : ''}`); return;
+      }
+      const missing = rows.filter(r => !(by === 'SMS' ? r.phone : r.email)).length;
+      if (missing) { showWarn(`${missing} customer${missing > 1 ? 's have' : ' has'} no ${by === 'SMS' ? 'phone number' : 'email address'}. Switch to ${by === 'SMS' ? 'Email' : 'SMS'} or remove ${missing > 1 ? 'them' : 'it'} to send.`); return false; }
+      snack(`${K} notification sent to ${rows.length} customer${rows.length > 1 ? 's' : ''} by ${by}`);
+    },
+  });
+
+  const showWarn = msg => { const w = $('#aw-warn', bd); w.hidden = !msg; w.innerHTML = msg ? `<span class="i mi">warning_amber</span>${esc(msg)}` : ''; };
+  const renderRows = () => {
+    $('#aw-sub', bd).textContent = `${rows.length} consignment${rows.length === 1 ? '' : 's'} · zone ${zoneName}`;
+    $('#aw-rows', bd).innerHTML = rows.map((r, i) => `<tr>
+      <td>${esc(r.con)}</td><td>${esc(r.customer)}</td><td class="trunc" title="${esc(r.sender)}" style="max-width:110px">${esc(r.sender)}</td><td class="trunc" title="${esc(r.receiver)}" style="max-width:130px">${esc(r.receiver)}</td>
+      <td>${r.phone ? esc(r.phone) : '<span class="muted">—</span>'}</td><td class="trunc" style="max-width:140px" title="${esc(r.email)}">${r.email ? esc(r.email) : '<span class="muted">—</span>'}</td>
+      <td class="num">${r.qty}</td><td class="num">${(+r.weight).toLocaleString('en-NZ')}</td><td class="num">${(+r.cube).toFixed(2)}</td>
+      <td class="col-actions"><button class="icon-btn sm" data-remove="${i}" aria-label="Remove ${esc(r.con)}" data-tip="Remove from notification"><span class="i mi">delete</span></button></td></tr>`).join('')
+      || '<tr class="empty"><td colspan="10">No consignments. Close this and select jobs to notify.</td></tr>';
+    showWarn('');
+  };
+  const renderCount = () => {
+    const len = $('#aw-message', bd).value.length, by = $('input[name="aw-transport"]:checked', bd).value;
+    if (mode === 'manual') { $('#aw-count', bd).textContent = `${len} characters`; return; }
+    $('#aw-count', bd).textContent = by === 'SMS' ? `${len} characters · ${Math.max(1, Math.ceil(len / 160))} SMS per customer. Placeholders in < > are filled in for each customer.` : 'Placeholders in < > are filled in for each customer.';
+  };
+  const DAY = 86400000, fmt = (d, o) => d.toLocaleDateString('en-NZ', o);
+  const renderDays = () => {
+    const days = [...Array(7)].map((_, i) => new Date(startDate.getTime() + (weekOffset * 7 + i) * DAY));
+    $('#aw-range', bd).textContent = `${fmt(days[0], { day: 'numeric', month: 'short' })} – ${fmt(days[6], { day: 'numeric', month: 'short', year: 'numeric' })}`;
+    $('#aw-days', bd).innerHTML = days.map(d => {
+      const k = iso(d), wins = winsFor(d), weekend = d.getDay() === 0 || d.getDay() === 6;
+      return `<div class="aw-day${weekend ? ' weekend' : ''}" data-date="${k}">
+        <div class="aw-day-head"><span class="aw-num">${d.getDate()}</span><span class="aw-dn"><b title="${fmt(d, { weekday: 'long' })}">${fmt(d, { weekday: 'short' })}</b><small>${fmt(d, { month: 'short' })}</small></span></div>
+        <div class="aw-wins">${wins.map((w, i) => w.editing
+          ? `<div class="aw-win editing"><input type="time" class="cell-input" data-from="${i}" value="${w.from}" aria-label="From"><input type="time" class="cell-input" data-to="${i}" value="${w.to}" aria-label="To">
+             <button class="btn btn-text sm aw-ok" data-win-ok="${i}">Done</button></div>`
+          : `<div class="aw-win"><button class="aw-time" data-win-edit="${i}" aria-label="Edit window ${w.from} to ${w.to}" data-tip="Edit window">${w.from}–${w.to}</button>
+             <button class="icon-btn sm" data-win-del="${i}" aria-label="Remove window ${w.from} to ${w.to}" data-tip="Remove window"><span class="i mi">close</span></button></div>`).join('')}
+        </div>
+        <button class="btn btn-text sm aw-add" data-win-add aria-label="Add window on ${fmt(d, { weekday: 'long', day: 'numeric', month: 'long' })}"><span class="i mi">add</span>Add</button>
+      </div>`;
+    }).join('');
+  };
+
+  // Tabs: System uses a template; Manual is a free-text message
+  $$('[data-aw-tab]', bd).forEach(t => t.addEventListener('click', () => {
+    mode = t.dataset.awTab;
+    $$('[data-aw-tab]', bd).forEach(x => x.setAttribute('aria-selected', String(x === t)));
+    $$('.aw-system', bd).forEach(f => { f.hidden = mode !== 'system'; });
+    $('[data-confirm-only]', bd).hidden = mode !== 'system';
+    showWarn('');
+    $('#aw-message', bd).value = mode === 'system' ? adviseMessage(kind) : '';
+    syncFilled($('#aw-message', bd).closest('.field')); renderCount();
+    if (mode === 'manual') $('#aw-message', bd).focus();
+  }));
+  $('#aw-template', bd).addEventListener('change', () => { $('#aw-message', bd).value = adviseMessage(kind); renderCount(); });
+  $('#aw-message', bd).addEventListener('input', renderCount);
+  $$('input[name="aw-transport"]', bd).forEach(r => r.addEventListener('change', () => { renderCount(); showWarn(''); }));
+  $('#aw-rows', bd).addEventListener('click', e => { const b = e.target.closest('[data-remove]'); if (b) { rows.splice(+b.dataset.remove, 1); hideTip(); renderRows(); } });
+  $$('[data-week]', bd).forEach(b => b.addEventListener('click', () => { weekOffset += +b.dataset.week; renderDays(); }));
+  $('#aw-days', bd).addEventListener('click', e => {
+    const day = e.target.closest('.aw-day'); if (!day) return;
+    const wins = windowsByDate[day.dataset.date];
+    const t = e.target.closest('button'); if (!t) return;
+    if (t.matches('[data-win-add]')) wins.push({ from: '09:00', to: '17:00', editing: true });
+    else if (t.matches('[data-win-del]')) wins.splice(+t.dataset.winDel, 1);
+    else if (t.matches('[data-win-edit]')) wins[+t.dataset.winEdit].editing = true;
+    else if (t.matches('[data-win-ok]')) {
+      const i = +t.dataset.winOk, from = $(`[data-from="${i}"]`, day).value, to = $(`[data-to="${i}"]`, day).value;
+      if (!from || !to || from >= to) { $(`[data-to="${i}"]`, day).style.borderColor = 'var(--error-main)'; $(`[data-to="${i}"]`, day).title = 'End time must be after start time'; return; }
+      Object.assign(wins[i], { from, to, editing: false });
+    } else return;
+    hideTip(); renderDays();
+    const first = $(`.aw-day[data-date="${day.dataset.date}"] .editing input`, bd); if (first) first.focus();
+  });
+  $('[data-confirm-only]', bd).addEventListener('click', () => {
+    if (!rows.length) { showWarn('Add at least one consignment to confirm.'); return; }
+    bd.close(); snack(`${K} windows confirmed for ${rows.length} consignment${rows.length > 1 ? 's' : ''} – no message sent`);
+  });
+
+  $('#aw-message', bd).value = adviseMessage(kind);
+  $$('.field', bd).forEach(syncFilled);
+  renderRows(); renderCount(); renderDays();
+}
 
 /* =====================================================================
    Journey tracker legs: drawn as SVG so the arrow can have a 1px divider stroke
