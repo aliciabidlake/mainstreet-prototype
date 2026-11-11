@@ -23,7 +23,7 @@ function route() {
     document.title = 'Not built · Mainstreet Prototype';
   } else {
     lastRealScreen = key;
-    document.title = key === 'welcome' ? 'Mainstreet Prototype' : (key === 'consignment' ? 'Consignment Edit' : 'Transport Dispatch') + ' · Mainstreet Prototype';
+    document.title = key === 'welcome' ? 'Mainstreet ONEDS Prototype' : (key === 'consignment' ? 'Consignment Edit' : 'Transport Dispatch') + ' · Mainstreet Prototype';
   }
   $$('.nav-btn').forEach(b => b.classList.toggle('current', false));
   window.scrollTo(0, 0);
